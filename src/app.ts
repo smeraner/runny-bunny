@@ -33,7 +33,7 @@ export class App {
     private camera: THREE.PerspectiveCamera | undefined;
     private filterMesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap> | undefined;
     private orbitVontrols: OrbitControls | undefined;
-    private gamepad: Gamepad | undefined;
+    private gamepad: Gamepad | null | undefined;
 
     constructor() {
         this.clock = new THREE.Clock();
@@ -277,8 +277,10 @@ export class App {
 
         //gamepad controls
         if(this.gamepad) {
-            this.player.velocity.add(this.player.getForwardVector().multiplyScalar(this.gamepad.axes[1] * speedDelta));
-            this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.gamepad.axes[0] * speedDelta));
+            this.gamepad = navigator.getGamepads()[this.gamepad.index];
+            if(!this.gamepad) return;
+            this.player.velocity.add(this.player.getForwardVector().multiplyScalar(this.gamepad.axes[3] * speedDelta));
+            this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.gamepad.axes[2] * speedDelta));
             if(this.gamepad.buttons[0].pressed) {
                 this.player.jump();
             }
