@@ -13,6 +13,7 @@ export class Player extends Actor implements DamageableObject {
     gravity = 0;
     speedOnFloor = 15;
     speedInAir = 5;
+    jumpHeight = 4;
     onFloor = false;
 
     colliderHeight = .3;
@@ -80,7 +81,7 @@ export class Player extends Actor implements DamageableObject {
 
     jump(): void {
         if (this.onFloor) {
-            this.velocity.y = 7;
+            this.velocity.y = this.jumpHeight;
         }
     }
 

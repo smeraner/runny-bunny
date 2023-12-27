@@ -17,7 +17,7 @@ export class App {
     private renderer: THREE.WebGLRenderer;
     private instructionText: any;
     private world: World | undefined;
-    private GRAVITY: number = 9.8 * 3.5;
+    private GRAVITY: number = 9.8;
     private gui: GUI;
 
     private keyStates: any = {};
@@ -169,7 +169,7 @@ export class App {
             window.innerWidth / window.innerHeight,
         )
         this.camera.position.set(0, 5, -2);
-        this.camera.rotation.set(1,3.2,0)
+        this.camera.rotation.set(1,3.1,0)
         this.scene.add(this.camera);
 
         let filterGeometry = new THREE.SphereGeometry(0.5, 15, 32); // camera near is 0.1, camera goes inside this sphere

@@ -29,7 +29,8 @@ export class World extends THREE.Object3D<WorldEventMap> {
     static soundBufferBreath: Promise<AudioBuffer>;
     static soundBufferIntro: Promise<AudioBuffer>;
     static model: Promise<THREE.Object3D>;
-    levelCylinder: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshLambertMaterial, THREE.Object3DEventMap> | undefined;
+    private levelCylinder: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshLambertMaterial, THREE.Object3DEventMap> | undefined;
+    private placeholders2d: THREE.Object3D[][] | undefined;
 
     static initialize() {
         //load audio     
@@ -112,9 +113,24 @@ export class World extends THREE.Object3D<WorldEventMap> {
         const map = this.map = new THREE.Object3D();
         const levelGeometry = new THREE.CylinderGeometry(3, 3, 4, 32);
         levelGeometry.rotateZ(Math.PI / 2);
-        const levelMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+        const dataNoiseTexture = new THREE.DataTexture(new Uint8Array(32 * 32 * 4), 32, 32, THREE.RGBAFormat);
+        dataNoiseTexture.wrapS = THREE.RepeatWrapping;
+        dataNoiseTexture.wrapT = THREE.RepeatWrapping;
+        dataNoiseTexture.repeat.set(5, 2);
+        dataNoiseTexture.needsUpdate = true;
+
+        for (let i = 0; i < dataNoiseTexture.image.data.length; i += 4) {
+            //random number between 200 and 255
+            const x = Math.floor(Math.random() * 55) + 200;
+            dataNoiseTexture.image.data[i + 0] = 0;
+            dataNoiseTexture.image.data[i + 1] = x;
+            dataNoiseTexture.image.data[i + 2] = 0;
+            dataNoiseTexture.image.data[i + 3] = x;
+        }
+
+        const levelMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, map: dataNoiseTexture });
         const levelCylinder = new THREE.Mesh(levelGeometry, levelMaterial);
-        levelCylinder.rotation.x = Math.PI / 2;
         this.levelCylinder = levelCylinder;
         map.add(levelCylinder);
 
@@ -122,22 +138,22 @@ export class World extends THREE.Object3D<WorldEventMap> {
         const guardrails = new THREE.Object3D();
         guardrails.visible = false;
         const guardrailMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
-        const guardrailGeometryBack = new THREE.BoxGeometry(4, 2, 0.1);
+        const guardrailGeometryBack = new THREE.BoxGeometry(4, 3, 0.1);
         const guardrailBack = new THREE.Mesh(guardrailGeometryBack, guardrailMaterial);
         guardrailBack.position.set(0, levelGeometry.parameters.radiusTop, -1.7);
         guardrails.add(guardrailBack);
 
-        const guardrailGeometryFront = new THREE.BoxGeometry(4, 2, 0.1);
+        const guardrailGeometryFront = new THREE.BoxGeometry(4, 3, 0.1);
         const guardrailFront = new THREE.Mesh(guardrailGeometryFront, guardrailMaterial);
         guardrailFront.position.set(0, levelGeometry.parameters.radiusTop, 1.7);
         guardrails.add(guardrailFront);
 
-        const guardrailGeometryLeft = new THREE.BoxGeometry(0.1, 2, 4);
+        const guardrailGeometryLeft = new THREE.BoxGeometry(0.1, 3, 4);
         const guardrailLeft = new THREE.Mesh(guardrailGeometryLeft, guardrailMaterial);
         guardrailLeft.position.set(levelGeometry.parameters.height/2, levelGeometry.parameters.radiusTop, 0);
         guardrails.add(guardrailLeft);
 
-        const guardrailGeometryRight = new THREE.BoxGeometry(0.1, 2, 4);
+        const guardrailGeometryRight = new THREE.BoxGeometry(0.1, 3, 4);
         const guardrailRight = new THREE.Mesh(guardrailGeometryRight, guardrailMaterial);
         guardrailRight.position.set(-levelGeometry.parameters.height/2, levelGeometry.parameters.radiusTop, 0);
         guardrails.add(guardrailRight);
@@ -148,8 +164,8 @@ export class World extends THREE.Object3D<WorldEventMap> {
         //add wired cylinder around level
         
         const wiredGeometry = new THREE.CylinderGeometry(levelGeometry.parameters.radiusTop + .1, levelGeometry.parameters.radiusBottom + .1, levelGeometry.parameters.height - 1, 18, 3, true);
-        wiredGeometry.rotateX(Math.PI / 2);
-        wiredGeometry.rotateY(Math.PI / 2);
+        wiredGeometry.rotateZ(-Math.PI / 2);
+        wiredGeometry.rotateX(4.5); //ensure that player starts in first row
 
         //add cube on every vertice of wired cylinder
         const placeholders1d = [];
@@ -159,7 +175,8 @@ export class World extends THREE.Object3D<WorldEventMap> {
         for (let i = 0; i < positionAttribute.count; i++) {
             const vertice = new THREE.Vector3();
             vertice.fromBufferAttribute(positionAttribute, i);
-            const placeholder = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            
+            const placeholder = new THREE.Mesh(cubeGeometry, cubeMaterial); //new THREE.Object3D(); //
             placeholder.position.copy(vertice);
             this.levelCylinder.add(placeholder);
             placeholders1d.push(placeholder);
@@ -174,13 +191,11 @@ export class World extends THREE.Object3D<WorldEventMap> {
             for (let j = 0; j < colsPerRow; j++) {
                 row.push(placeholders1d[i + rows * j]);
             }
-
             placeholders2d.push(row);
-            console.log(row);
         }
-        
-        placeholders2d[1][0].visible = false;
-        placeholders2d[1][1].visible = false;
+        this.placeholders2d = placeholders2d;
+
+        this.putPartofLevelToMap(0, 19);
 
         this.scene.add(map);
 
@@ -253,6 +268,58 @@ export class World extends THREE.Object3D<WorldEventMap> {
         this.helper = helper;
 
         return this.scene;
+    }
+
+    level = [
+        [0, 0, 0, 0],
+        [0, 1, 0, 0],
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [1, 0, 0, 0],
+        [1, 1, 0, 0],
+        [1, 1, 1, 0],
+        [1, 1, 0, 0],
+        [1, 0, 0, 0],
+        [1, 1, 0, 0],
+        [1, 1, 1, 0],
+        [1, 1, 0, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 0],
+    ]
+    getPartOfLevel(from:number=0, to:number=18) {
+        const level = [];
+        for (let i = from; i < to; i++) {
+            if(!this.level[i]) break;
+            level.push(this.level[i]);
+        }
+        return level;
+    }
+    putPartofLevelToMap(from:number=0, to:number=18) {
+        const level = this.getPartOfLevel(from, to);
+        const levelRows = this.placeholders2d?.length;
+
+        for (let i = 0; i < level.length; i++) {
+            const levelRow = level[i];
+            const placeholdersRow = this.placeholders2d?.[i];
+            if(!placeholdersRow) break;
+
+            for (let j = 0; j < levelRow.length; j++) {
+                const levelCell = levelRow[j];
+                const placeholder = placeholdersRow[j];
+                if(!placeholder) break;
+
+                if(levelCell === 0) {
+                    placeholder.visible = false;
+                } else {
+                    placeholder.visible = true;
+                }
+            }
+        }
     }
 
     allLightsOff() {
@@ -339,7 +406,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         if (!this.levelCylinder) return;
 
         //roate level cylinder
-        this.levelCylinder.rotation.x -= deltaTime * 0.2;
+        this.levelCylinder.rotation.x -= deltaTime * 0.3;
 
         this.animatedObjects.forEach(object => {
         });
