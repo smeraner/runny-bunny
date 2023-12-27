@@ -142,7 +142,6 @@ export class App {
         window.addEventListener('focus', () => listener.context.resume());
         window.addEventListener('click', () => this.player?.jump());
 
-        this.world?.startTimer();
     }
 
     /***
@@ -152,15 +151,6 @@ export class App {
 
         //init world
         this.world = new World(this.audioListenerPromise, this.gui);
-        this.world.addEventListener('timerExpired', () => {
-            this.updateHud();
-            if(!this.world || !this.player) return;
-            this.blendBlack();
-            this.world.allLightsOff();
-            this.world.stopTimer();
-            this.world.stopWorldAudio();
-         } );
-        this.world.addEventListener('timerTick', () => this.updateHud() );
         this.scene = await this.world.loadScene();
 
         let fov = 70;
@@ -188,7 +178,6 @@ export class App {
             if(!this.world || !this.player) return;
             this.player.teleport(this.world.playerSpawnPoint);
             this.world.allLightsOff();
-            this.world.stopTimer();
             this.world.stopWorldAudio();
         });
         this.player.addEventListener('damaged', () => {
@@ -237,7 +226,6 @@ export class App {
         this.blendBlack();
         this.updateInstructionText("You win! Reload to restart.");
         this.world.allLightsOff();
-        this.world.stopTimer();
         this.world.stopWorldAudio();
     }
 
@@ -289,16 +277,6 @@ export class App {
             hudText = "☠ You died. Reload to restart.";
         } else {
             hudText = `✙ ${this.player.health.toFixed(0)}`;
-            if(this.world) {
-                if(this.world.timerSeconds > 0) {
-                    // timer is active, 00:00 format
-                    const minutes = Math.floor(this.world.timerSeconds / 60);
-                    const seconds = this.world.timerSeconds % 60;
-                    hudText += ` ⧗ ${minutes}:${seconds.toFixed(0).padStart(2, '0')}`;
-                } else if (this.world.timerSeconds === 0) {
-                    hudText = ` ⧗ Time is up. Reload to restart.`;
-                }
-            }
         }
 
         this.updateInstructionText(hudText);

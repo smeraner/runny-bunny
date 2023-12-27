@@ -12,16 +12,7 @@ const geometryLoader = new GLTFLoader();
 geometryLoader.setDRACOLoader( dracoLoader );
 
 interface WorldEventMap extends THREE.Object3DEventMap  {
-    timerExpired: WorldTimerExpiredEvent;
-    timerTick: WorldTimerTickEvent;
-}
 
-interface WorldTimerExpiredEvent extends THREE.Event {
-    type: 'timerExpired';
-}
-
-interface WorldTimerTickEvent extends THREE.Event {
-    type: 'timerTick';
 }
 
 export class World extends THREE.Object3D<WorldEventMap> {
@@ -40,7 +31,6 @@ export class World extends THREE.Object3D<WorldEventMap> {
         // World.soundBufferIntro = audioLoader.loadAsync('./sounds/intro.ogg');
     }
 
-    timerInterval: NodeJS.Timeout | undefined;
     worldOctree = new Octree();
 
     gui: GUI;
@@ -55,8 +45,6 @@ export class World extends THREE.Object3D<WorldEventMap> {
     helper: OctreeHelper | undefined;
 
     animatedObjects: THREE.Object3D[] = [];
-
-    timerSeconds = 180; //seconds
 
     /**
      * @param {Promise<THREE.AudioListener>} audioListenerPromise
@@ -390,23 +378,6 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
 
 
-    }
-
-    startTimer() {
-        this.timerInterval = setInterval(() => {
-            this.timerSeconds--;
-            if (this.timerSeconds <= 0) {
-                this.timerSeconds = 0;
-                this.stopTimer();
-                this.dispatchEvent({type: "timerExpired"} as WorldTimerExpiredEvent);
-            } else {
-                this.dispatchEvent({type: "timerTick"} as WorldTimerTickEvent);
-            }
-        }, 1000);
-    }
-
-    stopTimer() {
-        clearInterval(this.timerInterval);
     }
 
     update(deltaTime: number, camera: THREE.Camera) {
