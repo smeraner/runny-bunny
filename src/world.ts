@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OctreeHelper } from 'three/addons/helpers/OctreeHelper.js';
 import { Octree } from 'three/addons/math/Octree.js';
+import { WorldItemEgg } from './worldItemEgg';
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath( './draco/' );
@@ -169,14 +170,11 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
         //add cube on every vertice of wired cylinder
         const placeholders1d = [];
-        const cubeGeometry = new THREE.SphereGeometry(0.1, 4, 4);
-        const cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
         const positionAttribute = wiredGeometry.getAttribute('position');
         for (let i = 0; i < positionAttribute.count; i++) {
             const vertice = new THREE.Vector3();
             vertice.fromBufferAttribute(positionAttribute, i);
-            
-            const placeholder = new THREE.Mesh(cubeGeometry, cubeMaterial); //new THREE.Object3D(); //
+            const placeholder = new THREE.Object3D();
             placeholder.position.copy(vertice);
             this.levelCylinder.add(placeholder);
             placeholders1d.push(placeholder);
@@ -313,11 +311,20 @@ export class World extends THREE.Object3D<WorldEventMap> {
                 const placeholder = placeholdersRow[j];
                 if(!placeholder) break;
 
-                if(levelCell === 0) {
-                    placeholder.visible = false;
-                } else {
-                    placeholder.visible = true;
+                placeholder.children.forEach(child => {
+                    placeholder.remove(child);
+                });
+
+                switch (levelCell) {
+                    case 0:
+                        //empty
+                        break;
+                    case 1:
+                        const egg = new WorldItemEgg();
+                        placeholder.add(egg);
+                        break;
                 }
+
             }
         }
     }
