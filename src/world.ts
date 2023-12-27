@@ -24,7 +24,7 @@ export interface WorldNeedHudUpdateEvent extends THREE.Event {
 export class World extends THREE.Object3D<WorldEventMap> {
 
     static debug = false;
-    static soundBufferBreath: Promise<AudioBuffer>;
+    static soundBufferBirds: Promise<AudioBuffer>;
     static soundBufferIntro: Promise<AudioBuffer>;
     static model: Promise<THREE.Object3D>;
     private levelCylinder: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshLambertMaterial, THREE.Object3DEventMap> | undefined;
@@ -33,7 +33,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
     static initialize() {
         //load audio     
         const audioLoader = new THREE.AudioLoader();
-        // World.soundBufferBreath = audioLoader.loadAsync('./sounds/background_breath.ogg');
+        World.soundBufferBirds = audioLoader.loadAsync('./sounds/birds.ogg');
         // World.soundBufferIntro = audioLoader.loadAsync('./sounds/intro.ogg');
     }
 
@@ -44,7 +44,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
     playerSpawnPoint: THREE.Vector3;
     objectLoader: THREE.ObjectLoader;
     scene: THREE.Scene | undefined;
-    soundBreath: THREE.Audio | undefined;
+    soundBirds: THREE.Audio | undefined;
     soundAlarm: THREE.Audio | undefined;
     soundIntro: THREE.Audio | undefined;
     map: THREE.Object3D<THREE.Object3DEventMap> | undefined;
@@ -70,11 +70,11 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
     async initAudio(audioListenerPromise: Promise<THREE.AudioListener>) {
         const audioListener = await audioListenerPromise;
-        const soundBuffer = await World.soundBufferBreath;
-        this.soundBreath = new THREE.Audio(audioListener);
-        this.soundBreath.setBuffer(soundBuffer);
-        this.soundBreath.setLoop(true);
-        this.soundBreath.setVolume(0.3);
+        const soundBufferBirds = await World.soundBufferBirds;
+        this.soundBirds = new THREE.Audio(audioListener);
+        this.soundBirds.setBuffer(soundBufferBirds);
+        this.soundBirds.setLoop(true);
+        this.soundBirds.setVolume(0.3);
 
         const soundBufferIntro = await World.soundBufferIntro;
         this.soundIntro = new THREE.Audio(audioListener);
@@ -86,8 +86,8 @@ export class World extends THREE.Object3D<WorldEventMap> {
     }
 
     playWorldAudio() {
-        if (this.soundBreath) {
-            this.soundBreath.play();
+        if (this.soundBirds) {
+            this.soundBirds.play();
         }
         setTimeout(() => {
             if(!this.soundIntro) return;
@@ -96,8 +96,8 @@ export class World extends THREE.Object3D<WorldEventMap> {
     }
 
     stopWorldAudio() {
-        if (this.soundBreath) {
-            this.soundBreath.stop();
+        if (this.soundBirds) {
+            this.soundBirds.stop();
         }
     }
 
