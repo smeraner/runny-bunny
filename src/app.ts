@@ -141,7 +141,7 @@ export class App {
 
         window.addEventListener('blur', () => listener.context.suspend());
         window.addEventListener('focus', () => listener.context.resume());
-        window.addEventListener('click', () => this.player?.jump());
+        window.addEventListener('mousedown', () => this.player?.jump());
         window.addEventListener("gamepadconnected", (e) => {
             this.gamepad = e.gamepad;
             console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
