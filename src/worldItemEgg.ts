@@ -22,19 +22,29 @@ export class WorldItemEgg extends THREE.Object3D implements WorldItem {
 
         WorldItemEgg.model = new THREE.LatheGeometry(points);
     }
+    
+    isCollectable = true;
+    isObstacle = false;
 
     constructor() {
         super();
 
         const mesh = new THREE.Mesh(WorldItemEgg.model, WorldItemEgg.eggMaterials[Math.floor(Math.random() * WorldItemEgg.eggMaterials.length)]);
         mesh.castShadow = true;
-        mesh.scale.set(0.2, 0.2, 0.2);
+        mesh.scale.set(0.3, 0.3, 0.3);
         this.add(mesh);
     }
 
+    collide(collideWithGlobalVector: THREE.Vector3): boolean {
+        //get this world position
+        const worldPosition = new THREE.Vector3();
+        this.getWorldPosition(worldPosition);
 
-    hit() {
+        //get distance between this and collideWith
+        const distance = worldPosition.distanceTo(collideWithGlobalVector);
 
+        return distance < 0.5;    
     }
+
 }
 WorldItemEgg.initialize();

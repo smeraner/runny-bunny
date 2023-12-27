@@ -5,6 +5,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OctreeHelper } from 'three/addons/helpers/OctreeHelper.js';
 import { Octree } from 'three/addons/math/Octree.js';
 import { WorldItemEgg } from './worldItemEgg';
+import { Player } from './player';
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath( './draco/' );
@@ -12,7 +13,11 @@ const geometryLoader = new GLTFLoader();
 geometryLoader.setDRACOLoader( dracoLoader );
 
 interface WorldEventMap extends THREE.Object3DEventMap  {
+    needHudUpdate: WorldNeedHudUpdateEvent;
+}
 
+export interface WorldNeedHudUpdateEvent extends THREE.Event {
+    type: 'needHudUpdate';
 }
 
 export class World extends THREE.Object3D<WorldEventMap> {
@@ -350,13 +355,26 @@ export class World extends THREE.Object3D<WorldEventMap> {
         let hemisphere = this.scene.getObjectByName("Hemisphere");
         if (hemisphere) return;
 
-        const textureLoader = new THREE.TextureLoader();
-        const texture = await textureLoader.loadAsync('./textures/sky.png');
-        texture.anisotropy = 4;
+        // Sky
+        const canvas = document.createElement( 'canvas' );
+        canvas.width = 1;
+        canvas.height = 32;
+
+        const context = canvas.getContext( '2d' );
+        if (context === null) return;
+        const gradient = context.createLinearGradient( 0, 0, 0, 32 );
+        gradient.addColorStop( 0.0, '#014a84' );
+        gradient.addColorStop( 0.5, '#0561a0' );
+        gradient.addColorStop( 1.0, '#437ab6' );
+        context.fillStyle = gradient;
+        context.fillRect( 0, 0, 1, 32 );
+
+        const skyMap = new THREE.CanvasTexture( canvas );
+        skyMap.colorSpace = THREE.SRGBColorSpace;
 
         const hemisphereGeometry = new THREE.SphereGeometry(1000, 32, 32);
         const hemisphereMaterial = new THREE.MeshBasicMaterial({
-            map: texture, 
+            map: skyMap, 
             side: THREE.BackSide,
             fog: false
         });
@@ -380,13 +398,36 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
     }
 
-    update(deltaTime: number, camera: THREE.Camera) {
+    update(deltaTime: number, player: Player) {
         if (!this.levelCylinder) return;
 
         //roate level cylinder
         this.levelCylinder.rotation.x -= deltaTime * 0.3;
 
         this.animatedObjects.forEach(object => {
+        });
+
+        //check if player is near placeholder
+        const playerGlobalPosition = new THREE.Vector3();
+        player.getWorldPosition(playerGlobalPosition);
+
+        this.placeholders2d?.forEach(row => {
+            row.forEach(placeholder => {
+                const worldItem = placeholder.children[0] as WorldItem;
+                if(!worldItem) return;
+
+                if(worldItem.collide(playerGlobalPosition)) {
+                    //player is near placeholder
+                    placeholder.children.forEach(child => {
+                        placeholder.remove(child);
+                    });
+                    if(worldItem.isCollectable) player.score++;
+                    if(worldItem.isObstacle) player.damage(10);
+                    this.dispatchEvent({
+                        type: 'needHudUpdate'
+                    } as WorldNeedHudUpdateEvent);
+                }
+            });
         });
 
     }

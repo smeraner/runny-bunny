@@ -28,6 +28,7 @@ export class Player extends Actor implements DamageableObject {
     camera: THREE.Camera;
     runAction: THREE.AnimationAction | undefined;
     actions: THREE.AnimationAction[] | undefined;
+    score: number = 0;
 
     static initialize() {
         //load model     

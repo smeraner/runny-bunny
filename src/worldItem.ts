@@ -1,3 +1,5 @@
 interface WorldItem extends THREE.Object3D {
-    hit: () => void;
+    collide: (collideWithGlobalVector: THREE.Vector3) => boolean;
+    isCollectable: boolean;
+    isObstacle: boolean;
 }

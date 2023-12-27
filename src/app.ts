@@ -151,6 +151,7 @@ export class App {
 
         //init world
         this.world = new World(this.audioListenerPromise, this.gui);
+        this.world.addEventListener('needHudUpdate', () => this.updateHud());
         this.scene = await this.world.loadScene();
 
         let fov = 70;
@@ -278,6 +279,7 @@ export class App {
         } else {
             hudText = `✙ ${this.player.health.toFixed(0)}`;
         }
+        hudText += ` 🥚 ${this.player.score}`;
 
         this.updateInstructionText(hudText);
     }
@@ -307,8 +309,8 @@ export class App {
         for (let i = 0; i < this.STEPS_PER_FRAME; i++) {
             this.controls(deltaTime);
 
-            if(this.world) this.player.update(deltaTime, this.world);
-            if (this.world) this.world.update(deltaTime, this.camera);
+            this.player.update(deltaTime, this.world);
+            this.world.update(deltaTime, this.player);
 
             this.teleportPlayerIfOob();
         }
