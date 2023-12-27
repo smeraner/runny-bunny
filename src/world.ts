@@ -6,6 +6,7 @@ import { OctreeHelper } from 'three/addons/helpers/OctreeHelper.js';
 import { Octree } from 'three/addons/math/Octree.js';
 import { WorldItemEgg } from './worldItemEgg';
 import { Player } from './player';
+import { WorldItemObstacle } from './worldItemObstacle';
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath( './draco/' );
@@ -261,15 +262,16 @@ export class World extends THREE.Object3D<WorldEventMap> {
         return this.scene;
     }
 
+    //egg level: 1 is egg, 0 is empty, 2 is obstacle
     level = [
         [0, 0, 0, 0],
         [0, 1, 0, 0],
-        [1, 0, 0, 0],
+        [1, 2, 0, 2],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
         [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 1, 0],
+        [0, 0, 0, 2],
+        [0, 0, 1, 2],
         [0, 1, 0, 0],
         [1, 0, 0, 0],
         [1, 1, 0, 0],
@@ -315,6 +317,10 @@ export class World extends THREE.Object3D<WorldEventMap> {
                     case 1:
                         const egg = new WorldItemEgg();
                         placeholder.add(egg);
+                        break;
+                    case 2:
+                        const obstacle = new WorldItemObstacle();
+                        placeholder.add(obstacle);
                         break;
                 }
 

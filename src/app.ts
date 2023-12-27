@@ -32,7 +32,8 @@ export class App {
     private joystickMoveVector: { x: number; y: number; } | undefined;
     private camera: THREE.PerspectiveCamera | undefined;
     private filterMesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap> | undefined;
-    orbitVontrols: OrbitControls | undefined;
+    private orbitVontrols: OrbitControls | undefined;
+    private gamepad: Gamepad | undefined;
 
     constructor() {
         this.clock = new THREE.Clock();
@@ -141,6 +142,12 @@ export class App {
         window.addEventListener('blur', () => listener.context.suspend());
         window.addEventListener('focus', () => listener.context.resume());
         window.addEventListener('click', () => this.player?.jump());
+        window.addEventListener("gamepadconnected", (e) => {
+            this.gamepad = e.gamepad;
+            console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+            this.gamepad.index, this.gamepad.id,
+            this.gamepad.buttons.length, this.gamepad.axes.length);
+        });
 
     }
 
@@ -266,6 +273,15 @@ export class App {
         if(this.joystickMoveVector) {
             this.player.velocity.add(this.player.getForwardVector().multiplyScalar(this.joystickMoveVector.y * speedDelta));
             this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.joystickMoveVector.x * speedDelta));
+        }
+
+        //gamepad controls
+        if(this.gamepad) {
+            this.player.velocity.add(this.player.getForwardVector().multiplyScalar(this.gamepad.axes[1] * speedDelta));
+            this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.gamepad.axes[0] * speedDelta));
+            if(this.gamepad.buttons[0].pressed) {
+                this.player.jump();
+            }
         }
 
     }
