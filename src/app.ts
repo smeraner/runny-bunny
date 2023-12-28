@@ -34,8 +34,12 @@ export class App {
     private filterMesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap> | undefined;
     private orbitVontrols: OrbitControls | undefined;
     private gamepad: Gamepad | null | undefined;
-    virtualJoystickManager: nipplejs.JoystickManager;
-    virtualJoystickLeftContainer: HTMLDivElement;
+    private virtualJoystickManager: nipplejs.JoystickManager;
+    private virtualJoystickLeftContainer: HTMLDivElement;
+    private touchStartX= 0;
+    private touchStartY= 0;
+    private touchMoveX= 0;
+    private touchMoveY= 0;
 
     constructor() {
         this.clock = new THREE.Clock();
@@ -93,13 +97,11 @@ export class App {
         });
 
         window.addEventListener('resize', this.resize.bind(this));
-        document.addEventListener('keydown', (event) => {
-            this.keyStates[event.code] = true;
-        });
+        document.addEventListener('keydown', (event) => this.keyStates[event.code] = true);
+        document.addEventListener('keyup', (event) => this.keyStates[event.code] = false);
 
-        document.addEventListener('keyup', (event) => {
-            this.keyStates[event.code] = false;
-        });
+        window.addEventListener("touchmove", (e) => this.hanldeTouch(e));
+        window.addEventListener("touchstart", (e) => this.hanldeTouch(e));
 
         window.addEventListener('mousedown', () => this.player?.jump());
         window.addEventListener("gamepadconnected", (e) => {
@@ -110,6 +112,26 @@ export class App {
         });
 
         this.renderer.setAnimationLoop(this.update.bind(this));
+    }
+
+    hanldeTouch(e: TouchEvent) {
+        var touch = e.touches[0] || e.changedTouches[0];
+        if(!touch) return;
+        const x = touch.pageX;
+        const y = touch.pageY;
+
+        if(e.type === "touchstart") {
+            this.touchStartX = x;
+            this.touchStartY = y;
+            this.touchMoveX = 0;
+            this.touchMoveY = 0;
+        } else if(e.type === "touchend") {
+            this.touchMoveX = 0;
+            this.touchMoveY = 0;
+        } else if(e.type === "touchmove") {
+            this.touchMoveX = (x - this.touchStartX)/window.innerWidth;
+            this.touchMoveY = (y - this.touchStartY)/window.innerHeight;
+        }
     }
 
     initDebugGui() {
@@ -312,6 +334,13 @@ export class App {
         if(this.joystickMoveVector) {
             this.player.velocity.add(this.player.getForwardVector().multiplyScalar(this.joystickMoveVector.y * speedDelta));
             this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.joystickMoveVector.x * speedDelta));
+        }
+
+        //touch move
+        if(this.touchMoveX > 0 || this.touchMoveY > 0) {
+            this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.touchMoveX * speedDelta));
+            this.player.velocity.add(this.player.getForwardVector().multiplyScalar(-this.touchMoveY * speedDelta));
+
         }
 
         //gamepad controls
