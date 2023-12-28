@@ -24,7 +24,7 @@ export class Player extends Actor implements DamageableObject {
     scene: THREE.Scene;
     colliderMesh: THREE.Mesh<THREE.CapsuleGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>;
     health: number = 3;
-    damageMultiplyer: number = 10;
+    damageMultiplyer: number = 1;
     camera: THREE.Camera;
     runAction: THREE.AnimationAction | undefined;
     actions: THREE.AnimationAction[] | undefined;

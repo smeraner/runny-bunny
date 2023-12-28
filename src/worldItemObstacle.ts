@@ -42,5 +42,9 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
         return distance < 0.5;    
     }
 
+    update(deltaTime: number): void {
+        
+    }
+
 }
 WorldItemObstacle.initialize();

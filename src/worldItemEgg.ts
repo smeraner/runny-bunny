@@ -45,6 +45,10 @@ export class WorldItemEgg extends THREE.Object3D implements WorldItem {
 
         return distance < 0.5;    
     }
+    
+    update(deltaTime: number): void {
+        
+    }
 
 }
 WorldItemEgg.initialize();

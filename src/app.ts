@@ -161,6 +161,9 @@ export class App {
         //init world
         this.world = new World(this.audioListenerPromise, this.gui);
         this.world.addEventListener('needHudUpdate', () => this.updateHud());
+        this.world.addEventListener('collect', () => {
+            this.vibrate(100);
+        });
         this.scene = await this.world.loadScene();
 
         let fov = 70;
@@ -214,7 +217,14 @@ export class App {
 
     vibrate(ms = 100) {
         if(navigator.vibrate) navigator.vibrate(ms);
-        if(this.gamepad?.vibrationActuator) this.gamepad.vibrationActuator.playEffect("dual-rumble", {duration: ms});
+        if(this.gamepad && this.gamepad.vibrationActuator) {
+            this.gamepad.vibrationActuator.playEffect("dual-rumble", {
+                startDelay: 0,
+                duration: ms,
+                weakMagnitude: 1,
+                strongMagnitude: 1
+            });
+        } 
     }
 
     blendHit() {
@@ -324,7 +334,7 @@ export class App {
         if(this.player.health === 0) {
             hudText = "☠ You died. Reload to restart.";
         } else {
-            hudText = `✙ ${this.player.health.toFixed(0)}`;
+            hudText = `♥ ${this.player.health.toFixed(0)}`;
         }
         hudText += ` 🥚 ${this.player.score}`;
 

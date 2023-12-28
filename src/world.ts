@@ -7,6 +7,7 @@ import { Octree } from 'three/addons/math/Octree.js';
 import { WorldItemEgg } from './worldItemEgg';
 import { Player } from './player';
 import { WorldItemObstacle } from './worldItemObstacle';
+import { WorldLevel } from './worldLevel';
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath( './draco/' );
@@ -16,6 +17,7 @@ geometryLoader.setDRACOLoader( dracoLoader );
 interface WorldEventMap extends THREE.Object3DEventMap  {
     needHudUpdate: WorldNeedHudUpdateEvent;
     collect: WorldCollectEvent;
+    levelUp: WorldLevelUpEvent;
 }
 
 export interface WorldNeedHudUpdateEvent extends THREE.Event {
@@ -24,6 +26,11 @@ export interface WorldNeedHudUpdateEvent extends THREE.Event {
 
 export interface WorldCollectEvent extends THREE.Event {
     type: 'collect';
+    item: WorldItem;
+}
+
+export interface WorldLevelUpEvent extends THREE.Event {
+    type: 'levelUp';
 }
 
 export class World extends THREE.Object3D<WorldEventMap> {
@@ -34,6 +41,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
     static model: Promise<THREE.Object3D>;
     private levelCylinder: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshLambertMaterial, THREE.Object3DEventMap> | undefined;
     private placeholders2d: THREE.Object3D[][] | undefined;
+    private level: WorldLevel = new WorldLevel();
 
     static initialize() {
         //load audio     
@@ -192,7 +200,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         }
         this.placeholders2d = placeholders2d;
 
-        this.putPartofLevelToMap(0, 19);
+        this.level.putPartofLevelToMap(placeholders2d, 0, 19);
 
         this.scene.add(map);
 
@@ -267,77 +275,11 @@ export class World extends THREE.Object3D<WorldEventMap> {
         return this.scene;
     }
 
-    //egg level: 1 is egg, 0 is empty, 2 is obstacle
-    level = [
-        [0, 0, 1, 0],
-        [0, 1, 0, 1],
-        [1, 2, 0, 2],
-        [0, 1, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 1, 0],
-        [0, 0, 1, 2],
-        [0, 1, 1, 2],
-        [0, 1, 0, 0],
-        [1, 0, 0, 0],
-        [1, 1, 0, 0],
-        [1, 1, 1, 0],
-        [1, 1, 0, 0],
-        [1, 0, 0,10],
-        [1, 1, 0, 0],
-        [1, 1, 1, 0],
-        [1, 1, 0, 0],
-        [1, 0, 0, 0],
-        [0, 0, 0, 0],
-    ]
-    getPartOfLevel(from:number=0, to:number=18) {
-        const level = [];
-        for (let i = from; i < to; i++) {
-            if(!this.level[i]) break;
-            level.push(this.level[i]);
-        }
-        return level;
-    }
-    putPartofLevelToMap(from:number=0, to:number=18) {
-        const level = this.getPartOfLevel(from, to);
-        const levelRows = this.placeholders2d?.length;
-
-        for (let i = 0; i < level.length; i++) {
-            const levelRow = level[i];
-            const placeholdersRow = this.placeholders2d?.[i];
-            if(!placeholdersRow) break;
-
-            for (let j = 0; j < levelRow.length; j++) {
-                const levelCell = levelRow[j];
-                const placeholder = placeholdersRow[j];
-                if(!placeholder) break;
-
-                placeholder.children.forEach(child => {
-                    placeholder.remove(child);
-                });
-
-                switch (levelCell) {
-                    case 0:
-                        //empty
-                        break;
-                    case 1:
-                        const egg = new WorldItemEgg();
-                        placeholder.add(egg);
-                        break;
-                    case 2:
-                        const obstacle = new WorldItemObstacle();
-                        placeholder.add(obstacle);
-                        break;
-                }
-
-            }
-        }
-    }
-
     reset() {
         this.stopWorldAudio();
         this.playWorldAudio();
         this.allLightsOn();
-        this.putPartofLevelToMap(0, 18);
+        if(this.placeholders2d) this.level.putPartofLevelToMap(this.placeholders2d, 0, 18);
     }
 
     allLightsOff() {
@@ -420,10 +362,11 @@ export class World extends THREE.Object3D<WorldEventMap> {
         if (!this.levelCylinder) return;
 
         //roate level cylinder
-        this.levelCylinder.rotation.x -= deltaTime * 0.3;
+        this.levelCylinder.rotation.x -= deltaTime * 0.3 * this.level.speed;
+        this.level.update(deltaTime);
 
-        this.animatedObjects.forEach(object => {
-        });
+        // this.animatedObjects.forEach(object => {
+        // });
 
         //check if player is near placeholder
         const playerGlobalPosition = new THREE.Vector3();
@@ -439,11 +382,15 @@ export class World extends THREE.Object3D<WorldEventMap> {
                     placeholder.children.forEach(child => {
                         placeholder.remove(child);
                     });
-                    if(worldItem.isCollectable) player.score++;
-                    if(worldItem.isObstacle) player.damage(10);
-                    this.dispatchEvent({
-                        type: 'needHudUpdate'
-                    } as WorldNeedHudUpdateEvent);
+                    if(worldItem.isCollectable) {
+                        player.score++;
+                        this.level.collectables = this.level.collectables.filter(item => item !== worldItem);
+                        this.dispatchEvent({ type: 'collect', item: worldItem } as WorldCollectEvent);
+                        this.dispatchEvent({ type: 'needHudUpdate' } as WorldNeedHudUpdateEvent);
+                    } else if(worldItem.isObstacle) {
+                        player.damage(1);
+                        this.dispatchEvent({ type: 'needHudUpdate' } as WorldNeedHudUpdateEvent);
+                    }
                 }
             });
         });
