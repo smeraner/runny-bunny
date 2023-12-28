@@ -323,7 +323,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         hemisphereLight.intensity = 1;
         this.scene.add(hemisphereLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff);
+        const directionalLight = new THREE.DirectionalLight(toGradient);
         directionalLight.position.set(0, 20, 10);
         directionalLight.castShadow = true;
         this.scene.add(directionalLight);
