@@ -182,15 +182,19 @@ export class App {
         this.player = new Player(this.scene, this.camera, this.GRAVITY);
         this.player.teleport(this.world.playerSpawnPoint);
         this.player.addEventListener('dead', () => {
-            if(navigator.vibrate) navigator.vibrate(1000);
+            this.vibrate(1000);
             this.updateHud();
             if(!this.world || !this.player) return;
             this.player.teleport(this.world.playerSpawnPoint);
             this.world.allLightsOff();
             this.world.stopWorldAudio();
+
+            setTimeout(() => {
+                this.restart();
+            }, 1000);
         });
         this.player.addEventListener('damaged', () => {
-            if(navigator.vibrate) navigator.vibrate(100);
+            this.vibrate(100);
             this.updateHud();
         });
         this.scene.add(this.player);
@@ -198,7 +202,19 @@ export class App {
 
         this.resize();
         //this.orbitVontrols = new OrbitControls( this.camera, this.renderer.domElement );
+    }
 
+    restart() {
+        if(!this.world || !this.player) return;
+        this.player.teleport(this.world.playerSpawnPoint);
+        this.player.reset();
+        this.world.reset();
+        this.updateHud();
+    }
+
+    vibrate(ms = 100) {
+        if(navigator.vibrate) navigator.vibrate(ms);
+        if(this.gamepad?.vibrationActuator) this.gamepad.vibrationActuator.playEffect("dual-rumble", {duration: ms});
     }
 
     blendHit() {
@@ -292,8 +308,8 @@ export class App {
         if(this.gamepad) {
             this.gamepad = navigator.getGamepads()[this.gamepad.index];
             if(!this.gamepad) return;
-            this.player.velocity.add(this.player.getForwardVector().multiplyScalar(-this.gamepad.axes[3] * speedDelta));
-            this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.gamepad.axes[2] * speedDelta));
+            this.player.velocity.add(this.player.getForwardVector().multiplyScalar(-this.gamepad.axes[1] * speedDelta));
+            this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.gamepad.axes[0] * speedDelta));
             if(this.gamepad.buttons[0].pressed) {
                 this.player.jump();
             }

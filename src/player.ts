@@ -23,7 +23,7 @@ export class Player extends Actor implements DamageableObject {
     direction = new THREE.Vector3();
     scene: THREE.Scene;
     colliderMesh: THREE.Mesh<THREE.CapsuleGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>;
-    health: number = 100;
+    health: number = 3;
     damageMultiplyer: number = 10;
     camera: THREE.Camera;
     runAction: THREE.AnimationAction | undefined;
@@ -78,6 +78,11 @@ export class Player extends Actor implements DamageableObject {
         this.colliderMesh = colliderMesh;
         this.scene.add(colliderMesh);
         this.colliderMesh.visible = Player.debug;
+    }
+
+    reset() {
+        this.health = 3;
+        this.score = 0;
     }
 
     jump(): void {

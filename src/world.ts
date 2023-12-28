@@ -15,10 +15,15 @@ geometryLoader.setDRACOLoader( dracoLoader );
 
 interface WorldEventMap extends THREE.Object3DEventMap  {
     needHudUpdate: WorldNeedHudUpdateEvent;
+    collect: WorldCollectEvent;
 }
 
 export interface WorldNeedHudUpdateEvent extends THREE.Event {
     type: 'needHudUpdate';
+}
+
+export interface WorldCollectEvent extends THREE.Event {
+    type: 'collect';
 }
 
 export class World extends THREE.Object3D<WorldEventMap> {
@@ -264,20 +269,20 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
     //egg level: 1 is egg, 0 is empty, 2 is obstacle
     level = [
-        [0, 0, 0, 0],
-        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 1, 0, 1],
         [1, 2, 0, 2],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 2],
+        [0, 0, 1, 0],
         [0, 0, 1, 2],
+        [0, 1, 1, 2],
         [0, 1, 0, 0],
         [1, 0, 0, 0],
         [1, 1, 0, 0],
         [1, 1, 1, 0],
         [1, 1, 0, 0],
-        [1, 0, 0, 0],
+        [1, 0, 0,10],
         [1, 1, 0, 0],
         [1, 1, 1, 0],
         [1, 1, 0, 0],
@@ -326,6 +331,13 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
             }
         }
+    }
+
+    reset() {
+        this.stopWorldAudio();
+        this.playWorldAudio();
+        this.allLightsOn();
+        this.putPartofLevelToMap(0, 18);
     }
 
     allLightsOff() {
