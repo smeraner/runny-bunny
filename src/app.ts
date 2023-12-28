@@ -102,6 +102,7 @@ export class App {
 
         window.addEventListener("touchmove", (e) => this.hanldeTouch(e));
         window.addEventListener("touchstart", (e) => this.hanldeTouch(e));
+        window.addEventListener("touchend", (e) => this.hanldeTouch(e));
 
         window.addEventListener('mousedown', () => this.player?.jump());
         window.addEventListener("gamepadconnected", (e) => {
@@ -129,8 +130,8 @@ export class App {
             this.touchMoveX = 0;
             this.touchMoveY = 0;
         } else if(e.type === "touchmove") {
-            this.touchMoveX = (x - this.touchStartX)/window.innerWidth;
-            this.touchMoveY = (y - this.touchStartY)/window.innerHeight;
+            this.touchMoveX = 3*(x - this.touchStartX)/window.innerWidth;
+            this.touchMoveY = 3*(y - this.touchStartY)/window.innerHeight;
         }
     }
 

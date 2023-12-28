@@ -125,9 +125,6 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
         //big world roller geometry
         const map = this.map = new THREE.Object3D();
-        const levelGeometry = new THREE.CylinderGeometry(3, 3, 4, 32);
-        levelGeometry.rotateZ(Math.PI / 2);
-
         const dataNoiseTexture = new THREE.DataTexture(new Uint8Array(32 * 32 * 4), 32, 32, THREE.RGBAFormat);
         dataNoiseTexture.wrapS = THREE.RepeatWrapping;
         dataNoiseTexture.wrapT = THREE.RepeatWrapping;
@@ -142,10 +139,25 @@ export class World extends THREE.Object3D<WorldEventMap> {
             dataNoiseTexture.image.data[i + 2] = 0;
             dataNoiseTexture.image.data[i + 3] = x;
         }
-
         const levelMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, map: dataNoiseTexture });
+
+        const levelGeometry = new THREE.CylinderGeometry(3, 3, 4, 32);
+        levelGeometry.rotateZ(Math.PI / 2);
         const levelCylinder = new THREE.Mesh(levelGeometry, levelMaterial);
         this.levelCylinder = levelCylinder;
+
+        const levelLeftGeometry = new THREE.CylinderGeometry(3, 3.5, 0.5, 32);
+        levelLeftGeometry.rotateZ(Math.PI / 2);
+        levelLeftGeometry.translate(2, 0, 0);
+        const levelLeftCylinder = new THREE.Mesh(levelLeftGeometry, levelMaterial);
+        this.levelCylinder.add(levelLeftCylinder);
+
+        const levelRightGeometry = new THREE.CylinderGeometry(3.5, 3, 0.5, 32);
+        levelRightGeometry.rotateZ(Math.PI / 2);
+        levelRightGeometry.translate(-2, 0, 0);
+        const levelRightCylinder = new THREE.Mesh(levelRightGeometry, levelMaterial);
+        this.levelCylinder.add(levelRightCylinder);
+
         map.add(levelCylinder);
 
         //guardrails geometry
