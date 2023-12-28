@@ -31,6 +31,28 @@ export class WorldLevel {
         [0, 0, 0, 0],
     ];
 
+    constructor(random: boolean = true) {
+        if (random) {
+            this.level = [];
+            const rows = 20;
+            for (let i = 0; i < rows; i++) {
+                const row = [];
+                for (let j = 0; j < 4; j++) {
+                    //40% empty, 40% egg, 20% obstacle
+                    const rand = Math.random();
+                    if (rand < 0.4) {
+                        row.push(0);
+                    } else if (rand < 0.8) {
+                        row.push(1);
+                    } else {
+                        row.push(2);
+                    }
+                }
+                this.level.push(row);
+            }
+        }
+    }
+
     levelUp() {
         this.levelNumber++;
         this.speed += 0.5;
