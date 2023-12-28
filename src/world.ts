@@ -93,7 +93,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         this.soundCollect = new THREE.Audio(audioListener);
         this.soundCollect.setBuffer(soundBufferCollect);
         this.soundCollect.setLoop(false);
-        this.soundCollect.setVolume(0.5);
+        this.soundCollect.setVolume(1);
 
         const soundBufferIntro = await World.soundBufferIntro;
         this.soundIntro = new THREE.Audio(audioListener);
@@ -280,33 +280,43 @@ export class World extends THREE.Object3D<WorldEventMap> {
         if (hemisphere) return;
 
         // Sky
-        const canvas = document.createElement( 'canvas' );
-        canvas.width = 1;
-        canvas.height = 32;
+        const skyDataTexture = new THREE.DataTexture(new Uint8Array(512 * 512 * 4), 512, 512, THREE.RGBAFormat);
+        skyDataTexture.needsUpdate = true;
 
-        const context = canvas.getContext( '2d' );
-        if (context === null) return;
-        const gradient = context.createLinearGradient( 0, 0, 0, 32 );
-        gradient.addColorStop( 0.0, '#014a84' );
-        gradient.addColorStop( 0.5, '#0561a0' );
-        gradient.addColorStop( 1.0, '#437ab6' );
-        context.fillStyle = gradient;
-        context.fillRect( 0, 0, 1, 32 );
-
-        const skyMap = new THREE.CanvasTexture( canvas );
-        skyMap.colorSpace = THREE.SRGBColorSpace;
-
-        const hemisphereGeometry = new THREE.SphereGeometry(1000, 32, 32);
-        const hemisphereMaterial = new THREE.MeshBasicMaterial({
-            map: skyMap, 
-            side: THREE.BackSide,
-            fog: false
-        });
-
-        hemisphere = new THREE.Mesh(hemisphereGeometry, hemisphereMaterial);
-        hemisphere.name = "Hemisphere";
-        hemisphere.position.set(0, 0, 0);
-        this.scene.add(hemisphere);
+        //gradient for sky according to day time morning, noon, evening, night
+        const time = new Date().getHours();
+        const fromGradient = new THREE.Color();
+        const toGradient = new THREE.Color();
+        const isNight = time >= 22 || time < 6;
+        if(time >= 6 && time < 12) {
+            fromGradient.set('#014a84');
+            toGradient.set('#0561a0');
+        } else if(time >= 12 && time < 18) {
+            fromGradient.set('#0561a0');
+            toGradient.set('#b8fbff');
+        } else if(time >= 18 && time < 22) {
+            fromGradient.set('#437ab6');
+            toGradient.set('#000000');
+        } else {
+            fromGradient.set('#014a84');
+            toGradient.set('#000000');
+        }
+        const skyGradient = new THREE.Color();
+        for (let i = 0; i < skyDataTexture.image.data.length; i += 4) {
+            const x = i / skyDataTexture.image.data.length;
+            skyGradient.lerpColors(fromGradient, toGradient, x);
+            skyDataTexture.image.data[i + 0] = skyGradient.r * 255;
+            skyDataTexture.image.data[i + 1] = skyGradient.g * 255;
+            skyDataTexture.image.data[i + 2] = skyGradient.b * 255;
+            skyDataTexture.image.data[i + 3] = 255;
+            if(isNight && Math.random() < 0.01) {
+                skyDataTexture.image.data[i + 0] = 255;
+                skyDataTexture.image.data[i + 1] = 255;
+                skyDataTexture.image.data[i + 2] = 255;
+                skyDataTexture.image.data[i + 3] = 255;
+            }
+        }
+        this.scene.background = skyDataTexture;
 
         const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444);
         hemisphereLight.position.set(0, 20, 0);
@@ -317,8 +327,6 @@ export class World extends THREE.Object3D<WorldEventMap> {
         directionalLight.position.set(0, 20, 10);
         directionalLight.castShadow = true;
         this.scene.add(directionalLight);
-
-
 
     }
 
