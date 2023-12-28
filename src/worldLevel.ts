@@ -3,6 +3,7 @@ import { WorldItemEgg } from './worldItemEgg';
 import { WorldItemObstacle } from './worldItemObstacle';
 
 export class WorldLevel {
+    levelNumber = 1;
     speed = 1;
     collectables: WorldItem[] = [];
     obstacles: WorldItem[] = [];
@@ -28,7 +29,18 @@ export class WorldLevel {
         [1, 1, 0, 0],
         [1, 0, 0, 0],
         [0, 0, 0, 0],
-    ]
+    ];
+
+    levelUp() {
+        this.levelNumber++;
+        this.speed += 0.5;
+    }
+
+    reset() {
+        this.levelNumber = 1;
+        this.speed = 1;
+    }
+
     getPartOfLevel(from: number = 0, to: number = 18) {
         const level = [];
         for (let i = from; i < to; i++) {
@@ -40,7 +52,6 @@ export class WorldLevel {
 
     putPartofLevelToMap(placeholders2d: THREE.Object3D[][], from:number=0, to:number=18) {
         const level = this.getPartOfLevel(from, to);
-        const levelRows = placeholders2d.length;
 
         for (let i = 0; i < level.length; i++) {
             const levelRow = level[i];

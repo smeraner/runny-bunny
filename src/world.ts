@@ -4,9 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OctreeHelper } from 'three/addons/helpers/OctreeHelper.js';
 import { Octree } from 'three/addons/math/Octree.js';
-import { WorldItemEgg } from './worldItemEgg';
 import { Player } from './player';
-import { WorldItemObstacle } from './worldItemObstacle';
 import { WorldLevel } from './worldLevel';
 
 const dracoLoader = new DRACOLoader();
@@ -37,6 +35,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
     static debug = false;
     static soundBufferBirds: Promise<AudioBuffer>;
+    static soundBufferCollect: Promise<AudioBuffer>;
     static soundBufferIntro: Promise<AudioBuffer>;
     static model: Promise<THREE.Object3D>;
     private levelCylinder: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshLambertMaterial, THREE.Object3DEventMap> | undefined;
@@ -47,6 +46,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         //load audio     
         const audioLoader = new THREE.AudioLoader();
         World.soundBufferBirds = audioLoader.loadAsync('./sounds/birds.ogg');
+        World.soundBufferCollect = audioLoader.loadAsync('./sounds/plop.ogg');
         // World.soundBufferIntro = audioLoader.loadAsync('./sounds/intro.ogg');
     }
 
@@ -58,7 +58,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
     objectLoader: THREE.ObjectLoader;
     scene: THREE.Scene | undefined;
     soundBirds: THREE.Audio | undefined;
-    soundAlarm: THREE.Audio | undefined;
+    soundCollect: THREE.Audio | undefined;
     soundIntro: THREE.Audio | undefined;
     map: THREE.Object3D<THREE.Object3DEventMap> | undefined;
     helper: OctreeHelper | undefined;
@@ -89,6 +89,12 @@ export class World extends THREE.Object3D<WorldEventMap> {
         this.soundBirds.setLoop(true);
         this.soundBirds.setVolume(0.3);
 
+        const soundBufferCollect = await World.soundBufferCollect;
+        this.soundCollect = new THREE.Audio(audioListener);
+        this.soundCollect.setBuffer(soundBufferCollect);
+        this.soundCollect.setLoop(false);
+        this.soundCollect.setVolume(0.3);
+
         const soundBufferIntro = await World.soundBufferIntro;
         this.soundIntro = new THREE.Audio(audioListener);
         this.soundIntro.setBuffer(soundBufferIntro);
@@ -99,11 +105,11 @@ export class World extends THREE.Object3D<WorldEventMap> {
     }
 
     playWorldAudio() {
-        if (this.soundBirds) {
+        if (this.soundBirds && !this.soundBirds.isPlaying) {
             this.soundBirds.play();
         }
         setTimeout(() => {
-            if(!this.soundIntro) return;
+            if(!this.soundIntro || this.soundIntro.isPlaying) return;
             this.soundIntro.play();
         }, 1000);
     }
@@ -204,68 +210,9 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
         this.scene.add(map);
 
-        // //load geometry
-        // const gltf = await geometryLoader.loadAsync('./models/scene_ship.glb');
-        
-        // //optimize performance
-        // gltf.scene.traverse(child => {
-        //     const mesh = child as THREE.Mesh;
-        //     if (mesh.isMesh) {
-        //         const mesh = child as THREE.Mesh;
-        //         mesh.castShadow = false;
-        //         mesh.receiveShadow = false;
-        //     }
-        //     const light = child as THREE.Light;
-        //     if (light.isLight) {
-        //         light.castShadow = false;
-        //     }
-        // });
-
-        // this.map = gltf.scene;
-
-        //add hemisphere
         this.addHemisphere();
 
         this.addFog();
-
-        // gltf.scene.traverse(child => {
-        //     const mesh = child as THREE.Mesh;
-
-        //     if (child.name.startsWith("Enemy")) {
-        //         this.enemySpawnPoints.push(child.position);
-        //     } else if (child.name === "Player") {
-        //         this.playerSpawnPoint.copy(child.position);
-        //     }
-
-        //     //damageable objects
-        //     if(mesh.isMesh && child.userData && child.userData.health) {
-        //         const damageableChild = child as DamageableObject;
-        //         damageableChild.damage = (damage: number) => {
-        //             child.userData.health -= damage;
-        //             if(child.userData.health <= 0) {
-        //                 if (child.parent !== null) {
-        //                     child.parent.remove(child);
-        //                 }
-        //                 this.rebuildOctree();
-        //             }
-        //         }
-        //     }
-                
-        //     // else if (child.isMesh && child.name === "collision-world.glb") {
-        //     //     if (child.material.map) {
-        //     //         child.material.map.anisotropy = 4;
-        //     //     }
-                
-        //     // }
-        // });
-
-        //this.scene.add(gltf.scene);
-
-        //add clouds
-        // const cloud = new Cloud();
-        // cloud.position.set(0, 1, 0);
-        // this.scene.add(cloud);
-        // this.animatedObjects.push(cloud);
        
         const helper = new OctreeHelper(this.worldOctree);
         helper.visible = false;
@@ -279,6 +226,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         this.stopWorldAudio();
         this.playWorldAudio();
         this.allLightsOn();
+        this.level.reset();
         if(this.placeholders2d) this.level.putPartofLevelToMap(this.placeholders2d, 0, 18);
     }
 
@@ -385,8 +333,14 @@ export class World extends THREE.Object3D<WorldEventMap> {
                     if(worldItem.isCollectable) {
                         player.score++;
                         this.level.collectables = this.level.collectables.filter(item => item !== worldItem);
+                        if(this.level.collectables.length === 0) {
+                            this.dispatchEvent({ type: 'levelUp' } as WorldLevelUpEvent);
+                            this.level.levelUp();
+                            if(this.placeholders2d) this.level.putPartofLevelToMap(this.placeholders2d);
+                        }
                         this.dispatchEvent({ type: 'collect', item: worldItem } as WorldCollectEvent);
                         this.dispatchEvent({ type: 'needHudUpdate' } as WorldNeedHudUpdateEvent);
+                        if(this.soundCollect && !this.soundCollect.isPlaying) this.soundCollect.play();
                     } else if(worldItem.isObstacle) {
                         player.damage(1);
                         this.dispatchEvent({ type: 'needHudUpdate' } as WorldNeedHudUpdateEvent);

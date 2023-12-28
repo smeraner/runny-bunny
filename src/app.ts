@@ -10,7 +10,7 @@ import { World } from './world';
 import { Actor } from './actor';
 
 export class App {
-    static firstUserActionEvents = ['mousedown', 'touchstart', 'mousemove','scroll','keydown'];
+    static firstUserActionEvents = ['mousedown', 'touchstart', 'mousemove','scroll','keydown','gamepadconnected'];
     static firstUserAction = true;
 
     private player: Player | undefined;
