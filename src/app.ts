@@ -3,7 +3,6 @@ import Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { createText } from 'three/addons/webxr/Text2D.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import nipplejs from 'nipplejs';
 
 import { Player } from './player';
 import { World } from './world';
@@ -34,8 +33,6 @@ export class App {
     private filterMesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap> | undefined;
     private orbitVontrols: OrbitControls | undefined;
     private gamepad: Gamepad | null | undefined;
-    private virtualJoystickManager: nipplejs.JoystickManager;
-    private virtualJoystickLeftContainer: HTMLDivElement;
     private touchStartX= 0;
     private touchStartY= 0;
     private touchMoveX= 0;
@@ -62,24 +59,6 @@ export class App {
         this.container.appendChild(this.renderer.domElement);
 
         this.container.appendChild( this.stats.dom );
-
-        this.virtualJoystickLeftContainer = document.createElement('div');
-        this.virtualJoystickLeftContainer.style.display = 'none';
-        document.body.appendChild(this.virtualJoystickLeftContainer);
-        this.virtualJoystickManager = nipplejs.create({
-            zone: this.virtualJoystickLeftContainer,
-            mode: 'static',
-            position: { left: '15%', bottom: '20%' },
-            color: 'green',
-            size: 150,
-        });
-        this.virtualJoystickManager.on('move', (evt: nipplejs.EventData, data: nipplejs.JoystickOutputData) => {
-            this.joystickMoveVector = data.vector;
-        });
-        this.virtualJoystickManager.on('end', () => {
-            this.joystickMoveVector = undefined;
-        });
-
 
         this.audioListenerPromise = new Promise<THREE.AudioListener>((resolve) => {
             this.setAudioListener = resolve;
@@ -221,6 +200,7 @@ export class App {
         });
         this.player.addEventListener('damaged', () => {
             this.vibrate(100);
+            this.blendHit();
             this.updateHud();
         });
         this.scene.add(this.player);
@@ -293,10 +273,8 @@ export class App {
 
         //if mobile, add joystick
         if(window.innerWidth <= 800) {
-            this.virtualJoystickLeftContainer.style.display = 'block';
             this.camera.position.set(0.3, 8.1, -2)
         } else {
-            this.virtualJoystickLeftContainer.style.display = 'none';
             this.camera.position.set(0.2, 5, -2);
         }
 
@@ -331,17 +309,10 @@ export class App {
             this.player.jump();
         }
 
-        //virtual joystick controls
-        if(this.joystickMoveVector) {
-            this.player.velocity.add(this.player.getForwardVector().multiplyScalar(this.joystickMoveVector.y * speedDelta));
-            this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.joystickMoveVector.x * speedDelta));
-        }
-
         //touch move
         if(this.touchMoveX > 0 || this.touchMoveY > 0) {
             this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.touchMoveX * speedDelta));
             this.player.velocity.add(this.player.getForwardVector().multiplyScalar(-this.touchMoveY * speedDelta));
-
         }
 
         //gamepad controls

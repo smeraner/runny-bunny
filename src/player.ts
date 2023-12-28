@@ -37,10 +37,12 @@ export class Player extends Actor implements DamageableObject {
         Player.model = gltfLoader.loadAsync('./models/bunny.glb').then(gltf => {
             gltf.scene.scale.set(0.2, 0.2, 0.2);
             gltf.scene.position.y = -0.3;
+            const meshToonMaterial = new THREE.MeshToonMaterial({ color: 0xffffff });
             gltf.scene.traverse(child => {
                 const mesh = child as THREE.Mesh;
                 mesh.castShadow = false;
                 mesh.receiveShadow = false;
+                mesh.material = meshToonMaterial;
             });
             return gltf;
         });

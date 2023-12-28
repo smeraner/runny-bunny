@@ -4,7 +4,7 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
 
     static model: THREE.LatheGeometry;
     static eggMaterials = [
-        new THREE.MeshLambertMaterial({ color: 0x000000 }),
+        new THREE.MeshPhongMaterial({ color: 0x000000 }),
     ];
 
     static initialize() {
