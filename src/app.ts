@@ -34,6 +34,8 @@ export class App {
     private filterMesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap> | undefined;
     private orbitVontrols: OrbitControls | undefined;
     private gamepad: Gamepad | null | undefined;
+    virtualJoystickManager: nipplejs.JoystickManager;
+    virtualJoystickLeftContainer: HTMLDivElement;
 
     constructor() {
         this.clock = new THREE.Clock();
@@ -57,24 +59,23 @@ export class App {
 
         this.container.appendChild( this.stats.dom );
 
-        //if mobile, add joystick
-        if(window.innerWidth <= 800) {
-            const joystick_left = document.createElement('div');
-            document.body.appendChild(joystick_left);
-            const manager = nipplejs.create({
-                zone: joystick_left,
-                mode: 'static',
-                position: { left: '15%', bottom: '20%' },
-                color: 'green',
-                size: 150,
-            });
-            manager.on('move', (evt: nipplejs.EventData, data: nipplejs.JoystickOutputData) => {
-                this.joystickMoveVector = data.vector;
-            });
-            manager.on('end', () => {
-                this.joystickMoveVector = undefined;
-            });
-        }
+        this.virtualJoystickLeftContainer = document.createElement('div');
+        this.virtualJoystickLeftContainer.style.display = 'none';
+        document.body.appendChild(this.virtualJoystickLeftContainer);
+        this.virtualJoystickManager = nipplejs.create({
+            zone: this.virtualJoystickLeftContainer,
+            mode: 'static',
+            position: { left: '15%', bottom: '20%' },
+            color: 'green',
+            size: 150,
+        });
+        this.virtualJoystickManager.on('move', (evt: nipplejs.EventData, data: nipplejs.JoystickOutputData) => {
+            this.joystickMoveVector = data.vector;
+        });
+        this.virtualJoystickManager.on('end', () => {
+            this.joystickMoveVector = undefined;
+        });
+
 
         this.audioListenerPromise = new Promise<THREE.AudioListener>((resolve) => {
             this.setAudioListener = resolve;
@@ -98,6 +99,14 @@ export class App {
 
         document.addEventListener('keyup', (event) => {
             this.keyStates[event.code] = false;
+        });
+
+        window.addEventListener('mousedown', () => this.player?.jump());
+        window.addEventListener("gamepadconnected", (e) => {
+            this.gamepad = e.gamepad;
+            console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+            this.gamepad.index, this.gamepad.id,
+            this.gamepad.buttons.length, this.gamepad.axes.length);
         });
 
         this.renderer.setAnimationLoop(this.update.bind(this));
@@ -141,13 +150,6 @@ export class App {
 
         window.addEventListener('blur', () => listener.context.suspend());
         window.addEventListener('focus', () => listener.context.resume());
-        window.addEventListener('mousedown', () => this.player?.jump());
-        window.addEventListener("gamepadconnected", (e) => {
-            this.gamepad = e.gamepad;
-            console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-            this.gamepad.index, this.gamepad.id,
-            this.gamepad.buttons.length, this.gamepad.axes.length);
-        });
 
     }
 
@@ -242,6 +244,13 @@ export class App {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+        //if mobile, add joystick
+        if(window.innerWidth <= 800) {
+            this.virtualJoystickLeftContainer.style.display = 'block';
+        } else {
+            this.virtualJoystickLeftContainer.style.display = 'none';
+        }
     }
 
     private controls(deltaTime: number): void {
