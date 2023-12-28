@@ -197,6 +197,7 @@ export class App {
         this.scene.add(this.player);
         this.updateHud();
 
+        this.resize();
         //this.orbitVontrols = new OrbitControls( this.camera, this.renderer.domElement );
 
     }
@@ -241,16 +242,20 @@ export class App {
 
     private resize(): void {
         if(!this.player || !this.camera) return;
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         //if mobile, add joystick
         if(window.innerWidth <= 800) {
             this.virtualJoystickLeftContainer.style.display = 'block';
+            this.camera.fov = 90;
         } else {
             this.virtualJoystickLeftContainer.style.display = 'none';
+            this.camera.fov = 70;
         }
+
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+
     }
 
     private controls(deltaTime: number): void {
