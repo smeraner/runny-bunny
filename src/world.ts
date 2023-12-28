@@ -230,6 +230,10 @@ export class World extends THREE.Object3D<WorldEventMap> {
         if(this.placeholders2d) this.level.putPartofLevelToMap(this.placeholders2d, 0, 18);
     }
 
+    getLevel() {
+        return this.level.levelNumber;
+    }
+
     allLightsOff() {
         if (!this.scene) return;
 

@@ -330,11 +330,11 @@ export class App {
     private updateHud(){
         if(!this.player) return;
 
-        let hudText = "";
+        let hudText = `L ${this.world?.getLevel()} `;
         if(this.player.health === 0) {
-            hudText = "☠ You died. Reload to restart.";
+            hudText += " ☠ You died. Wait to restart.";
         } else {
-            hudText = `♥ ${this.player.health.toFixed(0)}`;
+            hudText += ` ♥ ${this.player.health.toFixed(0)}`;
         }
         hudText += ` 🥚 ${this.player.score}`;
 
