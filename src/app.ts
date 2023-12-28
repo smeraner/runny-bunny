@@ -40,7 +40,7 @@ export class App {
     constructor() {
         this.clock = new THREE.Clock();
         this.gui = new GUI({ width: 200 });
-        //this.gui.hide();
+        this.gui.hide();
         this.initDebugGui();
 
         this.container = document.createElement('div');
@@ -168,7 +168,6 @@ export class App {
             fov,
             window.innerWidth / window.innerHeight,
         )
-        this.camera.position.set(0, 5, -2);
         this.camera.rotation.set(1,3.1,0)
         this.scene.add(this.camera);
 
@@ -246,10 +245,10 @@ export class App {
         //if mobile, add joystick
         if(window.innerWidth <= 800) {
             this.virtualJoystickLeftContainer.style.display = 'block';
-            this.camera.fov = 90;
+            this.camera.position.set(0.3, 8.1, -2)
         } else {
             this.virtualJoystickLeftContainer.style.display = 'none';
-            this.camera.fov = 70;
+            this.camera.position.set(0.2, 5, -2);
         }
 
         this.camera.aspect = window.innerWidth / window.innerHeight;
