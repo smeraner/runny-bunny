@@ -19,6 +19,7 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
         WorldItemObstacle.model = new THREE.LatheGeometry(points);
     }
     
+    color: THREE.Color = new THREE.Color(0x000000);
     isCollectable = false;
     isObstacle = true;
 

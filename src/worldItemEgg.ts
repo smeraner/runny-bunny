@@ -22,7 +22,8 @@ export class WorldItemEgg extends THREE.Object3D implements WorldItem {
 
         WorldItemEgg.model = new THREE.LatheGeometry(points);
     }
-    
+
+    color: THREE.Color;    
     isCollectable = true;
     isObstacle = false;
 
@@ -30,6 +31,7 @@ export class WorldItemEgg extends THREE.Object3D implements WorldItem {
         super();
 
         const mesh = new THREE.Mesh(WorldItemEgg.model, WorldItemEgg.eggMaterials[Math.floor(Math.random() * WorldItemEgg.eggMaterials.length)]);
+        this.color = mesh.material.color;
         mesh.castShadow = true;
         mesh.scale.set(0.3, 0.3, 0.3);
         this.add(mesh);

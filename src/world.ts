@@ -93,7 +93,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         this.soundCollect = new THREE.Audio(audioListener);
         this.soundCollect.setBuffer(soundBufferCollect);
         this.soundCollect.setLoop(false);
-        this.soundCollect.setVolume(0.3);
+        this.soundCollect.setVolume(0.5);
 
         const soundBufferIntro = await World.soundBufferIntro;
         this.soundIntro = new THREE.Audio(audioListener);
@@ -357,6 +357,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
                         this.dispatchEvent({ type: 'collect', item: worldItem } as WorldCollectEvent);
                         this.dispatchEvent({ type: 'needHudUpdate' } as WorldNeedHudUpdateEvent);
                         if(this.soundCollect && !this.soundCollect.isPlaying) this.soundCollect.play();
+                        player.setBucketEggColor(worldItem.color);
                     } else if(worldItem.isObstacle) {
                         player.damage(1);
                         this.dispatchEvent({ type: 'needHudUpdate' } as WorldNeedHudUpdateEvent);

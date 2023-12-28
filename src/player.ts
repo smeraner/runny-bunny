@@ -29,6 +29,7 @@ export class Player extends Actor implements DamageableObject {
     runAction: THREE.AnimationAction | undefined;
     actions: THREE.AnimationAction[] | undefined;
     score: number = 0;
+    eggBucketMaterial: THREE.MeshPhongMaterial | undefined;
 
     static initialize() {
         //load model     
@@ -66,6 +67,25 @@ export class Player extends Actor implements DamageableObject {
             this.mixer = new THREE.AnimationMixer(this.model);
             this.runAction = this.mixer.clipAction((gltf as any).animations[0]);
             this.actions = [this.runAction];
+
+            //create brown bunny bucket on his back
+            const bucketGeometry = new THREE.CylinderGeometry(0.5, 0.3, 1, 16);
+            const bucketMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+            const bucketMesh = new THREE.Mesh(bucketGeometry, bucketMaterial);
+            bucketMesh.position.set(0, 1, -0.7);
+            bucketMesh.rotation.y = Math.PI / 2;
+            bucketMesh.rotation.x = -0.2;
+            this.model.add(bucketMesh);
+
+            //create sphere in brown bunny bucket
+            const eggGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+            const eggMaterial = new THREE.MeshPhongMaterial({ color: 0xFF4500 });
+            const eggMesh = new THREE.Mesh(eggGeometry, eggMaterial);
+            eggMesh.position.set(0, 0.5, 0);
+            eggMesh.rotation.y = Math.PI / 2;
+            bucketMesh.add(eggMesh);
+            this.eggBucketMaterial = eggMaterial;
+            
             this.runAction.play();
         });
 
@@ -89,6 +109,10 @@ export class Player extends Actor implements DamageableObject {
         if (this.onFloor) {
             this.velocity.y = this.jumpHeight;
         }
+    }
+
+    setBucketEggColor(color: THREE.Color) {
+        if(this.eggBucketMaterial) this.eggBucketMaterial.color = color;
     }
 
     /**
