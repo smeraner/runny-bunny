@@ -221,7 +221,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         }
         this.placeholders2d = placeholders2d;
 
-        this.level.putPartofLevelToMap(placeholders2d, 0, 19);
+        this.level.putPartofLevelToMap(placeholders2d, 0, 18);
 
         this.scene.add(map);
 

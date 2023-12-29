@@ -73,6 +73,7 @@ export class WorldLevel {
     }
 
     putPartofLevelToMap(placeholders2d: THREE.Object3D[][], from:number=0, to:number=17) {
+        if(to-from > placeholders2d.length) throw new Error('Not enough placeholders');
         const level = this.getPartOfLevel(from, to);
 
         for (let i = 0; i < level.length; i++) {
