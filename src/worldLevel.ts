@@ -63,7 +63,7 @@ export class WorldLevel {
         this.speed = 1;
     }
 
-    getPartOfLevel(from: number = 0, to: number = 18) {
+    getPartOfLevel(from: number, to: number) {
         const level = [];
         for (let i = from; i < to; i++) {
             if (!this.level[i]) break;
@@ -72,7 +72,7 @@ export class WorldLevel {
         return level;
     }
 
-    putPartofLevelToMap(placeholders2d: THREE.Object3D[][], from:number=0, to:number=18) {
+    putPartofLevelToMap(placeholders2d: THREE.Object3D[][], from:number=0, to:number=17) {
         const level = this.getPartOfLevel(from, to);
 
         for (let i = 0; i < level.length; i++) {

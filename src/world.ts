@@ -209,10 +209,13 @@ export class World extends THREE.Object3D<WorldEventMap> {
         const placeholders2d = [];
         const colsPerRow = levelGeometry.parameters.height;
         const rows = placeholders1d.length / colsPerRow;
+        const rotation = (2*Math.PI) / rows;
         for (let i = 0; i < rows; i++) {
             const row = [];
             for (let j = 0; j < colsPerRow; j++) {
-                row.push(placeholders1d[i + rows * j]);
+                const cell = placeholders1d[i + rows * j];
+                cell.rotateX(rotation * i);
+                row.push(cell);
             }
             placeholders2d.push(row);
         }
