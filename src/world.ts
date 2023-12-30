@@ -344,12 +344,12 @@ export class World extends THREE.Object3D<WorldEventMap> {
         this.scene.background = skyDataTexture;
 
         const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444);
-        hemisphereLight.position.set(0, 20, 0);
+        hemisphereLight.position.set(0, 10, 0);
         hemisphereLight.intensity = 1;
         hemisphere.add(hemisphereLight);
 
-        const directionalLight = new THREE.DirectionalLight(toGradient);
-        directionalLight.position.set(0, 20, 10);
+        const directionalLight = new THREE.DirectionalLight(0xffffff)//toGradient);
+        directionalLight.position.set(0, 20, -10);
         directionalLight.castShadow = true;
         hemisphere.add(directionalLight);
 

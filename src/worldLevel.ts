@@ -42,13 +42,13 @@ export class WorldLevel {
                     //40% empty, 40% egg, 20% obstacle
                     const rand = Math.random();
                     if (rand < 0.4) {
-                        row.push(0);
+                        row.push(0); //empty
                     } else if (rand < 0.8) {
-                        row.push(1);
-                    } else if (rand < 0.95) {
-                        row.push(2);
+                        row.push(1); //egg
+                    } else if (rand < 0.97) {
+                        row.push(2); //obstacle
                     } else {
-                        row.push(3);
+                        row.push(3); //carrot
                     }
                 }
                 this.level.push(row);

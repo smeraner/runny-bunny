@@ -11,8 +11,8 @@ export class WorldItemCarrot extends THREE.Object3D implements WorldItem {
         const gltfLoader = new GLTFLoader();
         WorldItemCarrot.model = gltfLoader.loadAsync('./models/carrot.glb').then(gltf => {
             const mesh = gltf.scene.children[0] as THREE.Mesh;
-            mesh.scale.set(0.2, 0.2, 0.2);
-            mesh.position.set(0, -0.1, 0);
+            mesh.scale.set(0.15, 0.15, 0.15);
+            mesh.position.set(0, 0.15, 0);
             return gltf;
         });
     }
@@ -25,9 +25,10 @@ export class WorldItemCarrot extends THREE.Object3D implements WorldItem {
         super();
 
         WorldItemCarrot.model.then(gltf => {
-            this.add(gltf.scene);
+            const model = gltf.scene.clone();
+            this.add(model);
             this.tween = new Tween.Tween(this.position)
-                .to({y: 0.1}, 500)
+                .to({y: 0.25}, 500)
                 .yoyo(true)
                 .repeat(Infinity)
                 .start();
