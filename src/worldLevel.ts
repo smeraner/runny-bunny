@@ -122,6 +122,5 @@ export class WorldLevel {
     update(deltaTime: number) {
         this.collectables.forEach(c => c.update(deltaTime));
         this.obstacles.forEach(o => o.update(deltaTime));
-
     }
 }

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as Tween from 'three/examples/jsm/libs/tween.module.js';
 
 export class WorldItemEgg extends THREE.Object3D implements WorldItem {
 
@@ -10,6 +11,7 @@ export class WorldItemEgg extends THREE.Object3D implements WorldItem {
         new THREE.MeshLambertMaterial({ color: 0x0000ff }),
         new THREE.MeshLambertMaterial({ color: 0x00ffff }),
     ];
+    tween: Tween.Tween<any> | undefined;    
 
     static initialize() {
         const points = [];
@@ -35,6 +37,12 @@ export class WorldItemEgg extends THREE.Object3D implements WorldItem {
         mesh.castShadow = true;
         mesh.scale.set(0.2, 0.2, 0.2);
         this.add(mesh);
+
+        this.tween = new Tween.Tween(this.position)
+            .to({y: 0.1}, 500)
+            .yoyo(true)
+            .repeat(Infinity)
+            .start();
     }
 
     collide(collideWithGlobalVector: THREE.Vector3): boolean {
@@ -47,9 +55,18 @@ export class WorldItemEgg extends THREE.Object3D implements WorldItem {
 
         return distance < 0.5;    
     }
+
+    hit(): void {
+        if(this.tween) this.tween.stop();
+
+        this.tween = new Tween.Tween(this.scale)
+            .to({x: 0.1, y: 0.1, z: 0.1}, 500)
+            .start()
+            .onComplete(() => this.removeFromParent());
+    }
     
     update(deltaTime: number): void {
-        
+        if(this.tween) this.tween.update();
     }
 
 }

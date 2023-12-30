@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as Tween from 'three/examples/jsm/libs/tween.module.js';
 
 export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
 
@@ -48,7 +49,8 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
         });
 
     }
-    
+
+    tween: Tween.Tween<any> | undefined;    
     color: THREE.Color = new THREE.Color(0x000000);
     isCollectable = false;
     isObstacle = true;
@@ -87,8 +89,13 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
         return distance < 0.5;    
     }
 
+    hit(): void {
+        if(this.tween) this.tween.update();
+        this.removeFromParent();
+    }
+
     update(deltaTime: number): void {
-        
+        if(this.tween) this.tween.update();
     }
 
 }

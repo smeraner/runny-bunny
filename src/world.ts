@@ -363,13 +363,10 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
                 if(worldItem.collide(playerGlobalPosition)) {
                     //player is near placeholder
-                    placeholder.children.forEach(child => {
-                        placeholder.remove(child);
-                    });
+                    placeholder.remove(worldItem);
                     if(worldItem.isCollectable) {
                         player.score++;
                         this.level.collectables = this.level.collectables.filter(item => item.uuid !== worldItem.uuid);
-                        console.log(this.level.collectables.length);
                         if(this.level.collectables.length === 0) {
                             this.dispatchEvent({ type: 'levelUp' } as WorldLevelUpEvent);
                             this.level.levelUp();

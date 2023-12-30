@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as Tween from 'three/examples/jsm/libs/tween.module.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { createText } from 'three/addons/webxr/Text2D.js';
@@ -40,7 +41,7 @@ export class App {
 
     constructor() {
         this.clock = new THREE.Clock();
-        //App.gui.hide();
+        App.gui.hide();
         this.initDebugGui();
 
         this.container = document.createElement('div');
@@ -372,8 +373,8 @@ export class App {
             this.teleportPlayerIfOob();
         }
 
-        this.orbitVontrols?.update();
-
+        this.orbitVontrols?.update(deltaTime);
+        Tween.update(deltaTime);
         this.stats.update();
         this.renderer.render(this.scene, this.camera);
     }
