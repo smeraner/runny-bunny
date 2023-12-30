@@ -78,6 +78,10 @@ export class World extends THREE.Object3D<WorldEventMap> {
         this.playerSpawnPoint = new THREE.Vector3(0,3,-1);
 
         this.objectLoader = new THREE.ObjectLoader();
+        
+        this.gui.add({time:0}, 'time', 0, 24, 1).onFinishChange((time: number) => {
+            this.addHemisphere(time);
+        });
 
         this.initAudio(audioListenerPromise);
     }
@@ -276,19 +280,22 @@ export class World extends THREE.Object3D<WorldEventMap> {
         this.scene.fog = new THREE.Fog(0xffffff, 10, 35);
     }
 
-    async addHemisphere() {
+    async addHemisphere(time?: number) {
         if (!this.scene) return;
 
         //check if scene has hemisphere
         let hemisphere = this.scene.getObjectByName("Hemisphere");
-        if (hemisphere) return;
+        if (hemisphere) hemisphere.removeFromParent();
+
+        hemisphere = new THREE.Group();
+        hemisphere.name = "Hemisphere";
 
         // Sky
         const skyDataTexture = new THREE.DataTexture(new Uint8Array(512 * 512 * 4), 512, 512, THREE.RGBAFormat);
         skyDataTexture.needsUpdate = true;
 
         //gradient for sky according to day time morning, noon, evening, night
-        const time = new Date().getHours();
+        if(!time) time = new Date().getHours();
         const fromGradient = new THREE.Color();
         const toGradient = new THREE.Color();
         const isNight = time >= 22 || time < 6;
@@ -325,13 +332,14 @@ export class World extends THREE.Object3D<WorldEventMap> {
         const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444);
         hemisphereLight.position.set(0, 20, 0);
         hemisphereLight.intensity = 1;
-        this.scene.add(hemisphereLight);
+        hemisphere.add(hemisphereLight);
 
         const directionalLight = new THREE.DirectionalLight(toGradient);
         directionalLight.position.set(0, 20, 10);
         directionalLight.castShadow = true;
-        this.scene.add(directionalLight);
+        hemisphere.add(directionalLight);
 
+        this.scene.add(hemisphere);
     }
 
     update(deltaTime: number, player: Player) {

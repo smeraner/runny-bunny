@@ -11,13 +11,13 @@ import { Actor } from './actor';
 export class App {
     static firstUserActionEvents = ['mousedown', 'touchstart', 'mousemove','scroll','keydown','gamepadconnected'];
     static firstUserAction = true;
+    static gui: GUI = new GUI({ width: 200 });
 
     private player: Player | undefined;
     private renderer: THREE.WebGLRenderer;
     private instructionText: any;
     private world: World | undefined;
     private GRAVITY: number = 9.8;
-    private gui: GUI;
 
     private keyStates: any = {};
     private clock: any;
@@ -40,8 +40,7 @@ export class App {
 
     constructor() {
         this.clock = new THREE.Clock();
-        this.gui = new GUI({ width: 200 });
-        this.gui.hide();
+        //App.gui.hide();
         this.initDebugGui();
 
         this.container = document.createElement('div');
@@ -115,15 +114,15 @@ export class App {
     }
 
     initDebugGui() {
-        this.gui.add({ debugPlayer: false }, 'debugPlayer')
+        App.gui.add({ debugPlayer: false }, 'debugPlayer')
             .onChange(function (value) {
                 Player.debug = value;
             });
-        this.gui.add({ debugActor: false }, 'debugActor')
+        App.gui.add({ debugActor: false }, 'debugActor')
             .onChange(function (value) {
                 Actor.debug = value;
             });
-        this.gui.add({ debugWorld: false }, 'debugWorld')
+        App.gui.add({ debugWorld: false }, 'debugWorld')
             .onChange((value: boolean) => {
                 if (this.world && this.world.helper) {
                     this.world.helper.visible = value;
@@ -161,7 +160,7 @@ export class App {
     async initScene() {
 
         //init world
-        this.world = new World(this.audioListenerPromise, this.gui);
+        this.world = new World(this.audioListenerPromise, App.gui);
         this.world.addEventListener('needHudUpdate', () => this.updateHud());
         this.world.addEventListener('collect', () => {
             this.vibrate(100);
@@ -196,7 +195,7 @@ export class App {
 
             setTimeout(() => {
                 this.restart();
-            }, 1000);
+            }, 3000);
         });
         this.player.addEventListener('damaged', () => {
             this.vibrate(100);
@@ -333,7 +332,7 @@ export class App {
 
         let hudText = `L ${this.world?.getLevel()} `;
         if(this.player.health === 0) {
-            hudText += " ☠ You died. Wait to restart.";
+            hudText = " ☠ Game over. Wait to restart.";
         } else {
             hudText += ` ♥ ${this.player.health.toFixed(0)}`;
         }
