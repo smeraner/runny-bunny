@@ -56,11 +56,20 @@ export class WorldLevel {
     levelUp() {
         this.levelNumber++;
         this.speed += 0.5;
+        this.emptyWorldItems();
     }
 
     reset() {
         this.levelNumber = 1;
         this.speed = 1;
+        this.emptyWorldItems();
+    }
+
+    private emptyWorldItems() {
+        this.obstacles.forEach(o => o.removeFromParent());
+        this.obstacles = [];
+        this.collectables.forEach(c => c.removeFromParent());
+        this.collectables = [];
     }
 
     getPartOfLevel(from: number, to: number) {
