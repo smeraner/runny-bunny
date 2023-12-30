@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { WorldItemEgg } from './worldItemEgg';
 import { WorldItemObstacle } from './worldItemObstacle';
+import { WorldItemCarrot } from './worldItemCarrot';
 
 export class WorldLevel {
     levelNumber = 1;
@@ -8,7 +9,7 @@ export class WorldLevel {
     collectables: WorldItem[] = [];
     obstacles: WorldItem[] = [];
 
-    //egg level: 1 is egg, 0 is empty, 2 is obstacle
+    //egg level: 1 is egg, 0 is empty, 2 is obstacle, 3 is carrot
     level = [
         [0, 0, 1, 0],
         [0, 1, 0, 1],
@@ -44,8 +45,10 @@ export class WorldLevel {
                         row.push(0);
                     } else if (rand < 0.8) {
                         row.push(1);
-                    } else {
+                    } else if (rand < 0.95) {
                         row.push(2);
+                    } else {
+                        row.push(3);
                     }
                 }
                 this.level.push(row);
@@ -112,6 +115,12 @@ export class WorldLevel {
                         const obstacle = new WorldItemObstacle();
                         this.obstacles.push(obstacle);
                         placeholder.add(obstacle);
+                        break;
+                    case 3:
+                        //carrot
+                        const carrot = new WorldItemCarrot();
+                        this.collectables.push(carrot);
+                        placeholder.add(carrot);
                         break;
                 }
 

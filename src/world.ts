@@ -6,6 +6,8 @@ import { OctreeHelper } from 'three/addons/helpers/OctreeHelper.js';
 import { Octree } from 'three/addons/math/Octree.js';
 import { Player } from './player';
 import { WorldLevel } from './worldLevel';
+import { WorldItemEgg } from './worldItemEgg';
+import { WorldItemCarrot } from './worldItemCarrot';
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath( './draco/' );
@@ -158,15 +160,15 @@ export class World extends THREE.Object3D<WorldEventMap> {
         const levelCylinder = new THREE.Mesh(levelGeometry, levelMaterial);
         this.levelCylinder = levelCylinder;
 
-        const levelLeftGeometry = new THREE.CylinderGeometry(3, 3.5, 0.5, 32);
+        const levelLeftGeometry = new THREE.CylinderGeometry(3, 3.5, 1, 32);
         levelLeftGeometry.rotateZ(Math.PI / 2);
-        levelLeftGeometry.translate(2, 0, 0);
+        levelLeftGeometry.translate(2.5, 0, 0);
         const levelLeftCylinder = new THREE.Mesh(levelLeftGeometry, levelMaterial);
         this.levelCylinder.add(levelLeftCylinder);
 
-        const levelRightGeometry = new THREE.CylinderGeometry(3.5, 3, 0.5, 32);
+        const levelRightGeometry = new THREE.CylinderGeometry(3.5, 3, 1, 32);
         levelRightGeometry.rotateZ(Math.PI / 2);
-        levelRightGeometry.translate(-2, 0, 0);
+        levelRightGeometry.translate(-2.5, 0, 0);
         const levelRightCylinder = new THREE.Mesh(levelRightGeometry, levelMaterial);
         this.levelCylinder.add(levelRightCylinder);
 
@@ -377,7 +379,12 @@ export class World extends THREE.Object3D<WorldEventMap> {
                     //player is near placeholder
                     placeholder.remove(worldItem);
                     if(worldItem.isCollectable) {
-                        player.score++;
+                        if(worldItem instanceof WorldItemEgg) {
+                            player.score++;
+                        } else if(worldItem instanceof WorldItemCarrot) {
+                            player.health++;
+                        }
+
                         this.level.collectables = this.level.collectables.filter(item => item.uuid !== worldItem.uuid);
                         if(this.level.collectables.length === 0) {
                             this.dispatchEvent({ type: 'levelUp' } as WorldLevelUpEvent);
