@@ -7,6 +7,7 @@ import { Actor, ActorDamageEvent, ActorDeadEvent } from './actor';
 export class Player extends Actor implements DamageableObject {
     static debug = false;
     static model: Promise<any>;
+    static starsTexture: Promise<THREE.Texture>;
 
     mixer: THREE.AnimationMixer | undefined;
     model: THREE.Object3D<THREE.Object3DEventMap> | undefined;
@@ -30,6 +31,7 @@ export class Player extends Actor implements DamageableObject {
     actions: THREE.AnimationAction[] | undefined;
     score: number = 0;
     eggBucketMaterial: THREE.MeshPhongMaterial | undefined;
+    effectMesh: THREE.Mesh | undefined;
 
     static initialize() {
         //load model     
@@ -46,6 +48,9 @@ export class Player extends Actor implements DamageableObject {
             });
             return gltf;
         });
+
+        const textureLoader = new THREE.TextureLoader();
+        Player.starsTexture = textureLoader.loadAsync('./textures/stars.png');
     }
 
     /**
@@ -87,6 +92,18 @@ export class Player extends Actor implements DamageableObject {
             eggMesh.rotation.y = Math.PI / 2;
             bucketMesh.add(eggMesh);
             this.eggBucketMaterial = eggMaterial;
+
+            //effect plane
+            Player.starsTexture.then(texture => {
+                const effectGeometry = new THREE.PlaneGeometry(2, 2);
+                const effectMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+                const effectMesh = new THREE.Mesh(effectGeometry, effectMaterial);
+                effectMesh.position.set(-2, 4, 0);
+                effectMesh.rotation.x = -Math.PI/2;
+                bucketMesh.add(effectMesh);
+                this.effectMesh = effectMesh;
+                this.effectMesh.visible = false;
+            });
             
             this.runAction.play();
         });
@@ -133,6 +150,12 @@ export class Player extends Actor implements DamageableObject {
         } else {
             //this.blendHit();
         }
+        if(this.effectMesh) {
+            this.effectMesh.visible = true;
+            setTimeout(() => {
+                if(this.effectMesh) this.effectMesh.visible = false;
+            }, 1000);
+        }
     }
 
     /**
@@ -174,6 +197,10 @@ export class Player extends Actor implements DamageableObject {
 
         this.position.copy(this.collider.end);
         this.position.y -= this.collider.radius;
+
+        if(this.effectMesh && this.effectMesh.visible) {
+            this.effectMesh.rotation.z += 2*deltaTime;
+        }
 
         this.colliderMesh.visible = Player.debug;
         if(this.mixer) this.mixer.update(deltaTime);

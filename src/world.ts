@@ -47,6 +47,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
         const audioLoader = new THREE.AudioLoader();
         World.soundBufferBirds = audioLoader.loadAsync('./sounds/birds.ogg');
         World.soundBufferCollect = audioLoader.loadAsync('./sounds/plop.ogg');
+
         // World.soundBufferIntro = audioLoader.loadAsync('./sounds/intro.ogg');
     }
 
@@ -359,7 +360,8 @@ export class World extends THREE.Object3D<WorldEventMap> {
                     });
                     if(worldItem.isCollectable) {
                         player.score++;
-                        this.level.collectables = this.level.collectables.filter(item => item !== worldItem);
+                        this.level.collectables = this.level.collectables.filter(item => item.uuid !== worldItem.uuid);
+                        console.log(this.level.collectables.length);
                         if(this.level.collectables.length === 0) {
                             this.dispatchEvent({ type: 'levelUp' } as WorldLevelUpEvent);
                             this.level.levelUp();
@@ -371,6 +373,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
                         player.setBucketEggColor(worldItem.color);
                     } else if(worldItem.isObstacle) {
                         player.damage(1);
+                        this.level.obstacles = this.level.obstacles.filter(item => item.uuid !== worldItem.uuid);
                         this.dispatchEvent({ type: 'needHudUpdate' } as WorldNeedHudUpdateEvent);
                     }
                 }
