@@ -41,6 +41,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
     private levelCylinder: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshLambertMaterial, THREE.Object3DEventMap> | undefined;
     private placeholders2d: THREE.Object3D[][] | undefined;
     private level: WorldLevel = new WorldLevel();
+    static treeModel: Promise<THREE.Object3D>;
 
     static initialize() {
         //load audio     
@@ -48,6 +49,12 @@ export class World extends THREE.Object3D<WorldEventMap> {
         World.soundBufferBirds = audioLoader.loadAsync('./sounds/birds.ogg');
         World.soundBufferCollect = audioLoader.loadAsync('./sounds/plop.ogg');
 
+        //load model
+        const gLTFLoader = new GLTFLoader();
+        World.treeModel = gLTFLoader.loadAsync('./models/tree.glb').then(gltf => {
+            gltf.scene.scale.set(0.002, 0.002, 0.002);
+            return gltf.scene;
+        });
         // World.soundBufferIntro = audioLoader.loadAsync('./sounds/intro.ogg');
     }
 
@@ -162,6 +169,11 @@ export class World extends THREE.Object3D<WorldEventMap> {
         levelRightGeometry.translate(-2, 0, 0);
         const levelRightCylinder = new THREE.Mesh(levelRightGeometry, levelMaterial);
         this.levelCylinder.add(levelRightCylinder);
+
+        const tree = await World.treeModel;
+        tree.scale.multiplyScalar(0.5);
+        tree.position.set(2, 3.2, 0);
+        levelCylinder.add(tree);
 
         map.add(levelCylinder);
 
@@ -303,8 +315,8 @@ export class World extends THREE.Object3D<WorldEventMap> {
             fromGradient.set('#014a84');
             toGradient.set('#0561a0');
         } else if(time >= 12 && time < 18) {
-            fromGradient.set('#0561a0');
-            toGradient.set('#b8fbff');
+            fromGradient.set('#b8fbff');
+            toGradient.set('#0561a0');
         } else if(time >= 18 && time < 22) {
             fromGradient.set('#437ab6');
             toGradient.set('#000000');

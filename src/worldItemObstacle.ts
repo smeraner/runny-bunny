@@ -8,8 +8,9 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
     static eggMaterials = [
         new THREE.MeshPhongMaterial({ color: 0x000000 }),
     ];
-    static cowModel: any;
-    static mushroomModel: any;
+    static cowModel: Promise<{ scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }>;
+    static mushroomModel: Promise<{ scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }>;
+    static treeModel: Promise<{ scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }>;
 
     static initialize() {
         //construct egg model
@@ -48,6 +49,13 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
             return gltf;
         });
 
+        const gLTFLoader = new GLTFLoader();
+        WorldItemObstacle.treeModel = gLTFLoader.loadAsync('./models/tree.glb').then(gltf => {
+            gltf.scene.scale.set(0.001, 0.001, 0.001);
+            gltf.scene.position.y = -0.2;
+            return gltf;
+        });
+
     }
 
     tween: Tween.Tween<any> | undefined;    
@@ -58,13 +66,19 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
     constructor() {
         super();
 
-        if(Math.random() < 0.6) {
+        if(Math.random() < 0.3) {
             const mesh = new THREE.Mesh(WorldItemObstacle.eggModel, WorldItemObstacle.eggMaterials[Math.floor(Math.random() * WorldItemObstacle.eggMaterials.length)]);
             mesh.castShadow = true;
             mesh.scale.set(0.2, 0.2, 0.2);
             this.add(mesh);
         } else if(Math.random() < 0.5) {
             WorldItemObstacle.cowModel.then((gltf: { scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }) => {
+                const model = gltf.scene.clone();
+                model.rotation.y = Math.PI * Math.random();
+                this.add(model);
+            });
+        } else if(Math.random() < 0.7) {
+            WorldItemObstacle.treeModel.then((gltf: { scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }) => {
                 const model = gltf.scene.clone();
                 model.rotation.y = Math.PI * Math.random();
                 this.add(model);

@@ -34,8 +34,8 @@ export class WorldItemEgg extends THREE.Object3D implements WorldItem {
 
         const mesh = new THREE.Mesh(WorldItemEgg.model, WorldItemEgg.eggMaterials[Math.floor(Math.random() * WorldItemEgg.eggMaterials.length)]);
         this.color = mesh.material.color;
-        mesh.castShadow = true;
         mesh.scale.set(0.2, 0.2, 0.2);
+        mesh.position.y = 0.1;
         this.add(mesh);
 
         this.tween = new Tween.Tween(this.position)
