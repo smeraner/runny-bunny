@@ -101,6 +101,26 @@ module.exports = (env, argv) => ({
                 }, seed);
 
                 return {
+                    name: "RunnyBunny",
+                    short_name: "RunnyBunny",
+                    description: "Runny Bunny is a cheeky little bunny who often has things going wrong. Let's put it this way, he's not the brightest candle on the cake. But as the saying goes: If you don't have it in your head, you have it in your feet.	Help Runny Bunny sort out his misfortunes before his parents find out. ",
+                    icons: [
+                        {
+                            src: "textures/icons/android-chrome-192x192.png",
+                            sizes: "192x192",
+                            type: "image/png"
+                        },
+                        {
+                            src: "textures/icons/android-chrome-512x512.png",
+                            sizes: "512x512",
+                            type: "image/png"
+                        }
+                    ],
+                    start_url: "/",
+                    display: "standalone",
+                    theme_color: "#000000",
+                    background_color: "#ffffff",
+                    orientation: "portrait",
                     files: manifestFiles,
                 };
             },
