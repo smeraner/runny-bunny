@@ -5,6 +5,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const artifact = require('./package.json');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 
 const fileName = `${artifact.name}-${artifact.version.slice(0, 3)}`;
 
@@ -89,6 +90,20 @@ module.exports = (env, argv) => ({
             template: path.resolve(__dirname, 'src/index.html'), // template file
             filename: 'index.html', // output file
             publicPath: './',
+        }),
+        new WebpackManifestPlugin({
+            fileName: 'manifest.json',
+            publicPath: '',
+            generate: (seed, files) => {
+                const manifestFiles = files.reduce((manifest, file) => {
+                    manifest[file.name] = file.path;
+                    return manifest;
+                }, seed);
+
+                return {
+                    files: manifestFiles,
+                };
+            },
         })
     ],
 });

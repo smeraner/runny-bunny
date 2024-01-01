@@ -144,6 +144,8 @@ export class App {
             document.removeEventListener(event, this.onFirstUserAction.bind(this));
         });
 
+        document.getElementById('loading')?.remove();
+
         //init audio
         const listener = new THREE.AudioListener();
         if (this.setAudioListener) {
@@ -152,7 +154,6 @@ export class App {
 
         window.addEventListener('blur', () => listener.context.suspend());
         window.addEventListener('focus', () => listener.context.resume());
-
     }
 
     /***
