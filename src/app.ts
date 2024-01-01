@@ -3,7 +3,7 @@ import * as Tween from 'three/examples/jsm/libs/tween.module.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { createText } from 'three/addons/webxr/Text2D.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OutlineEffect } from 'three/addons/effects/OutlineEffect.js';
 
 import { Player } from './player';
 import { World } from './world';
@@ -32,12 +32,13 @@ export class App {
     private joystickMoveVector: { x: number; y: number; } | undefined;
     private camera: THREE.PerspectiveCamera | undefined;
     private filterMesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap> | undefined;
-    private orbitVontrols: OrbitControls | undefined;
+    //private orbitVontrols: OrbitControls | undefined;
     private gamepad: Gamepad | null | undefined;
     private touchStartX= 0;
     private touchStartY= 0;
     private touchMoveX= 0;
     private touchMoveY= 0;
+    effect: OutlineEffect;
 
     constructor() {
         this.clock = new THREE.Clock();
@@ -63,6 +64,8 @@ export class App {
         this.audioListenerPromise = new Promise<THREE.AudioListener>((resolve) => {
             this.setAudioListener = resolve;
         });
+
+        this.effect = new OutlineEffect( this.renderer );
 
         this.init();
     }
@@ -374,9 +377,9 @@ export class App {
             this.teleportPlayerIfOob();
         }
 
-        this.orbitVontrols?.update(deltaTime);
+        //this.orbitVontrols?.update(deltaTime);
         Tween.update(deltaTime);
         this.stats.update();
-        this.renderer.render(this.scene, this.camera);
+        this.effect.render(this.scene, this.camera);
     }
 }
