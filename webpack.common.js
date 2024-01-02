@@ -116,7 +116,7 @@ module.exports = (env, argv) => ({
                             type: "image/png"
                         }
                     ],
-                    start_url: "/",
+                    start_url: "/runny-bunny/",
                     display: "standalone",
                     theme_color: "#000000",
                     background_color: "#ffffff",
