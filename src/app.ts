@@ -8,6 +8,7 @@ import { OutlineEffect } from 'three/addons/effects/OutlineEffect.js';
 import { Player } from './player';
 import { World } from './world';
 import { Actor } from './actor';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export class App {
     static firstUserActionEvents = ['mousedown', 'touchstart', /*'mousemove','scroll',*/'keydown','gamepadconnected'];
@@ -32,7 +33,7 @@ export class App {
     private joystickMoveVector: { x: number; y: number; } | undefined;
     private camera: THREE.PerspectiveCamera | undefined;
     private filterMesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap> | undefined;
-    //private orbitVontrols: OrbitControls | undefined;
+    private orbitVontrols: OrbitControls | undefined;
     private gamepad: Gamepad | null | undefined;
     private touchStartX= 0;
     private touchStartY= 0;
@@ -232,7 +233,11 @@ export class App {
         this.updateHud();
 
         this.resize();
-        //this.orbitVontrols = new OrbitControls( this.camera, this.renderer.domElement );
+    }
+
+    enableOrbitControls() {
+        if(!this.camera || !this.renderer) return;
+        this.orbitVontrols = new OrbitControls( this.camera, this.renderer.domElement );
     }
 
     restart() {
@@ -398,7 +403,7 @@ export class App {
             this.teleportPlayerIfOob();
         }
 
-        //this.orbitVontrols?.update(deltaTime);
+        this.orbitVontrols?.update(deltaTime);
         Tween.update(deltaTime);
         this.stats.update();
         this.effect.render(this.scene, this.camera);
