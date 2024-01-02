@@ -10,7 +10,7 @@ import { World } from './world';
 import { Actor } from './actor';
 
 export class App {
-    static firstUserActionEvents = ['mousedown', 'touchstart', 'mousemove','scroll','keydown','gamepadconnected'];
+    static firstUserActionEvents = ['mousedown', 'touchstart', /*'mousemove','scroll',*/'keydown','gamepadconnected'];
     static firstUserAction = true;
     static gui: GUI = new GUI({ width: 200 });
 
