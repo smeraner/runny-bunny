@@ -38,7 +38,8 @@ export class App {
     private touchStartY= 0;
     private touchMoveX= 0;
     private touchMoveY= 0;
-    effect: OutlineEffect;
+    private effect: OutlineEffect;
+    private deferredInstallPrompt: any;
 
     constructor() {
         this.clock = new THREE.Clock();
@@ -77,6 +78,15 @@ export class App {
         App.firstUserActionEvents.forEach((event) => {
             document.addEventListener(event, this.onFirstUserAction.bind(this), { once: true });
         });
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt Event fired');
+            e.preventDefault();          
+            // Stash the event so it can be triggered later.
+            this.deferredInstallPrompt = e;
+            
+            return false;
+          });
 
         window.addEventListener('resize', this.resize.bind(this));
         document.addEventListener('keydown', (event) => this.keyStates[event.code] = true);
@@ -147,6 +157,8 @@ export class App {
             document.removeEventListener(event, this.onFirstUserAction.bind(this));
         });
 
+        this.askInstallPWA();
+
         document.getElementById('loading')?.remove();
 
         //init audio
@@ -157,6 +169,15 @@ export class App {
 
         window.addEventListener('blur', () => listener.context.suspend());
         window.addEventListener('focus', () => listener.context.resume());
+    }
+
+    askInstallPWA() {
+        //already pwa
+        if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any)["standalone"] === true) {
+            return;
+        }
+
+        if(this.deferredInstallPrompt) this.deferredInstallPrompt.prompt();
     }
 
     /***
