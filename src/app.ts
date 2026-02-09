@@ -11,7 +11,7 @@ import { Actor } from './actor';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export class App {
-    static firstUserActionEvents = ['mousedown', 'touchstart', /*'mousemove','scroll',*/'keydown','gamepadconnected'];
+    static firstUserActionEvents = ['mousedown', 'touchstart', /*'mousemove','scroll',*/'keydown', 'gamepadconnected'];
     static firstUserAction = true;
     static gui: GUI = new GUI({ width: 200 });
 
@@ -35,10 +35,10 @@ export class App {
     private filterMesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap> | undefined;
     private orbitVontrols: OrbitControls | undefined;
     private gamepad: Gamepad | null | undefined;
-    private touchStartX= 0;
-    private touchStartY= 0;
-    private touchMoveX= 0;
-    private touchMoveY= 0;
+    private touchStartX = 0;
+    private touchStartY = 0;
+    private touchMoveX = 0;
+    private touchMoveY = 0;
     private effect: OutlineEffect;
     private deferredInstallPrompt: any;
 
@@ -61,19 +61,19 @@ export class App {
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.container.appendChild(this.renderer.domElement);
 
-        this.container.appendChild( this.stats.dom );
+        this.container.appendChild(this.stats.dom);
 
         this.audioListenerPromise = new Promise<THREE.AudioListener>((resolve) => {
             this.setAudioListener = resolve;
         });
 
-        this.effect = new OutlineEffect( this.renderer );
+        this.effect = new OutlineEffect(this.renderer);
 
         this.init();
     }
 
     async init() {
-       
+
         await this.initScene();
 
         App.firstUserActionEvents.forEach((event) => {
@@ -82,12 +82,12 @@ export class App {
 
         window.addEventListener('beforeinstallprompt', (e) => {
             console.log('beforeinstallprompt Event fired');
-            e.preventDefault();          
+            e.preventDefault();
             // Stash the event so it can be triggered later.
             this.deferredInstallPrompt = e;
-            
+
             return false;
-          });
+        });
 
         window.addEventListener('resize', this.resize.bind(this));
         document.addEventListener('keydown', (event) => this.keyStates[event.code] = true);
@@ -101,8 +101,8 @@ export class App {
         window.addEventListener("gamepadconnected", (e) => {
             this.gamepad = e.gamepad;
             console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-            this.gamepad.index, this.gamepad.id,
-            this.gamepad.buttons.length, this.gamepad.axes.length);
+                this.gamepad.index, this.gamepad.id,
+                this.gamepad.buttons.length, this.gamepad.axes.length);
         });
 
         this.renderer.setAnimationLoop(this.update.bind(this));
@@ -110,21 +110,21 @@ export class App {
 
     hanldeTouch(e: TouchEvent) {
         var touch = e.touches[0] || e.changedTouches[0];
-        if(!touch) return;
+        if (!touch) return;
         const x = touch.pageX;
         const y = touch.pageY;
 
-        if(e.type === "touchstart") {
+        if (e.type === "touchstart") {
             this.touchStartX = x;
             this.touchStartY = y;
             this.touchMoveX = 0;
             this.touchMoveY = 0;
-        } else if(e.type === "touchend") {
+        } else if (e.type === "touchend") {
             this.touchMoveX = 0;
             this.touchMoveY = 0;
-        } else if(e.type === "touchmove") {
-            this.touchMoveX = 4*(x - this.touchStartX)/window.innerWidth;
-            this.touchMoveY = 4*(y - this.touchStartY)/window.innerHeight;
+        } else if (e.type === "touchmove") {
+            this.touchMoveX = 4 * (x - this.touchStartX) / window.innerWidth;
+            this.touchMoveY = 4 * (y - this.touchStartY) / window.innerHeight;
         }
     }
 
@@ -151,7 +151,7 @@ export class App {
      * Plays audio and adds a light saber to the player's scene.
      */
     onFirstUserAction() {
-        if(App.firstUserAction === false) return;
+        if (App.firstUserAction === false) return;
         App.firstUserAction = false;
 
         App.firstUserActionEvents.forEach((event) => {
@@ -178,7 +178,7 @@ export class App {
             return;
         }
 
-        if(this.deferredInstallPrompt) this.deferredInstallPrompt.prompt();
+        if (this.deferredInstallPrompt) this.deferredInstallPrompt.prompt();
     }
 
     /***
@@ -199,11 +199,11 @@ export class App {
             fov,
             window.innerWidth / window.innerHeight,
         )
-        this.camera.rotation.set(1,3.1,0)
+        this.camera.rotation.set(1, 3.1, 0)
         this.scene.add(this.camera);
 
         let filterGeometry = new THREE.SphereGeometry(0.5, 15, 32); // camera near is 0.1, camera goes inside this sphere
-        let filterMaterial = new THREE.MeshBasicMaterial({color: 0xff0000, transparent: true, opacity: 0.35, side: THREE.BackSide});
+        let filterMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.35, side: THREE.BackSide });
         let filterMesh = new THREE.Mesh(filterGeometry, filterMaterial);
         filterMesh.visible = false;
         this.camera.add(filterMesh);
@@ -215,7 +215,7 @@ export class App {
         this.player.addEventListener('dead', () => {
             this.vibrate(1000);
             this.updateHud();
-            if(!this.world || !this.player) return;
+            if (!this.world || !this.player) return;
             this.player.teleport(this.world.playerSpawnPoint);
             this.world.allLightsOff();
             this.world.stopWorldAudio();
@@ -236,12 +236,12 @@ export class App {
     }
 
     enableOrbitControls() {
-        if(!this.camera || !this.renderer) return;
-        this.orbitVontrols = new OrbitControls( this.camera, this.renderer.domElement );
+        if (!this.camera || !this.renderer) return;
+        this.orbitVontrols = new OrbitControls(this.camera, this.renderer.domElement);
     }
 
     restart() {
-        if(!this.world || !this.player) return;
+        if (!this.world || !this.player) return;
         this.player.teleport(this.world.playerSpawnPoint);
         this.player.reset();
         this.world.reset();
@@ -249,49 +249,49 @@ export class App {
     }
 
     vibrate(ms = 100) {
-        if(navigator.vibrate) navigator.vibrate(ms);
-        if(this.gamepad && this.gamepad.vibrationActuator) {
+        if (navigator.vibrate) navigator.vibrate(ms);
+        if (this.gamepad && this.gamepad.vibrationActuator) {
             this.gamepad.vibrationActuator.playEffect("dual-rumble", {
                 startDelay: 0,
                 duration: ms,
                 weakMagnitude: 1,
                 strongMagnitude: 1
             });
-        } 
+        }
     }
 
     blendHit() {
-        if(!this.filterMesh) return;
+        if (!this.filterMesh) return;
         this.filterMesh.material.color.setHex(0xff0000);
         this.filterMesh.material.opacity = 0.35;
         this.filterMesh.visible = true;
         setTimeout(() => {
-            if(!this.filterMesh) return;
+            if (!this.filterMesh) return;
             this.filterMesh.visible = false;
         }, 200);
     }
 
     blendDie() {
-        if(!this.filterMesh) return;
+        if (!this.filterMesh) return;
         this.filterMesh.material.color.setHex(0xff0000);
         this.filterMesh.material.opacity = 1;
         this.filterMesh.visible = true;
     }
 
     blendBlack() {
-        if(!this.filterMesh) return;
+        if (!this.filterMesh) return;
         this.filterMesh.material.color.setHex(0x000000);
         this.filterMesh.material.opacity = 1;
         this.filterMesh.visible = true;
     }
 
     blendClear() {
-        if(!this.filterMesh) return;
+        if (!this.filterMesh) return;
         this.filterMesh.visible = false;
     }
 
     displayWinMessage() {
-        if(!this.player || !this.world) return;
+        if (!this.player || !this.world) return;
         this.blendBlack();
         this.updateInstructionText("You win! Reload to restart.");
         this.world.allLightsOff();
@@ -299,10 +299,10 @@ export class App {
     }
 
     private resize(): void {
-        if(!this.player || !this.camera) return;
+        if (!this.player || !this.camera) return;
 
         //if mobile, add joystick
-        if(window.innerWidth <= 800) {
+        if (window.innerWidth <= 800) {
             this.camera.position.set(0.3, 8.1, -2)
         } else {
             this.camera.position.set(0.2, 5, -2);
@@ -315,7 +315,7 @@ export class App {
     }
 
     private controls(deltaTime: number): void {
-        if(!this.player) return;       
+        if (!this.player) return;
         const speedDelta = deltaTime * (this.player.onFloor ? this.player.speedOnFloor : this.player.speedInAir);
 
         //keyboard controls
@@ -340,57 +340,58 @@ export class App {
         }
 
         //touch move
-        if(this.touchMoveX > 0 || this.touchMoveY > 0) {
+        if (this.touchMoveX > 0 || this.touchMoveY > 0) {
             this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.touchMoveX * speedDelta));
             this.player.velocity.add(this.player.getForwardVector().multiplyScalar(-this.touchMoveY * speedDelta));
         }
 
         //gamepad controls
-        if(this.gamepad) {
+        if (this.gamepad) {
             this.gamepad = navigator.getGamepads()[this.gamepad.index];
-            if(!this.gamepad) return;
+            if (!this.gamepad) return;
             this.player.velocity.add(this.player.getForwardVector().multiplyScalar(-this.gamepad.axes[1] * speedDelta));
             this.player.velocity.add(this.player.getSideVector().multiplyScalar(this.gamepad.axes[0] * speedDelta));
-            if(this.gamepad.buttons[0].pressed) {
+            if (this.gamepad.buttons[0].pressed) {
                 this.player.jump();
             }
         }
 
     }
 
-    private updateHud(){
-        if(!this.player) return;
+    private updateHud() {
+        if (!this.player) return;
 
         let hudText = `L ${this.world?.getLevel()} `;
-        if(this.player.health === 0) {
+        if (this.player.health === 0) {
             hudText = " ☠ Game over. Wait to restart.";
         } else {
             hudText += ` ♥ ${this.player.health.toFixed(0)}`;
         }
         hudText += ` 🥚 ${this.player.score}`;
+        hudText += ` 🏆 ${this.player.highscore}`;
 
         this.updateInstructionText(hudText);
     }
 
     private updateInstructionText(text: string): void {
-        if(!this.player || !this.camera) return;
+        if (!this.player || !this.camera) return;
 
         this.camera.remove(this.instructionText);
         this.instructionText = createText(text, 0.04);
-        this.instructionText.position.set(0,0.1,-0.2);
-        this.instructionText.scale.set(0.3,0.3,0.3);
+        this.instructionText.position.set(0, 0.1, -0.2);
+        this.instructionText.scale.set(0.3, 0.3, 0.3);
         this.camera.add(this.instructionText);
     }
 
     private teleportPlayerIfOob(): void {
-        if(!this.player || !this.world) return;
+        if (!this.player || !this.world) return;
         if (this.world && this.player.position.y <= -25) {
             this.player.teleport(this.world.playerSpawnPoint);
         }
     }
 
     public update(): void {
-        if(!this.player || !this.scene || !this.world || !this.camera) return;
+        if (!this.player || !this.scene || !this.world || !this.camera) return;
 
         const deltaTime = Math.min(0.05, this.clock.getDelta()) / this.STEPS_PER_FRAME;
 
@@ -404,7 +405,7 @@ export class App {
         }
 
         this.orbitVontrols?.update(deltaTime);
-        Tween.update(deltaTime);
+        Tween.update();
         this.stats.update();
         this.effect.render(this.scene, this.camera);
     }

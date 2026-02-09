@@ -30,8 +30,20 @@ export class Player extends Actor implements DamageableObject {
     runAction: THREE.AnimationAction | undefined;
     actions: THREE.AnimationAction[] | undefined;
     score: number = 0;
+    highscore: number = 0;
     eggBucketMaterial: THREE.MeshPhongMaterial | undefined;
     effectMesh: THREE.Mesh | undefined;
+
+    static HIGHSCORE_KEY = 'runnyBunny_highscore';
+
+    static getHighscore(): number {
+        const stored = localStorage.getItem(Player.HIGHSCORE_KEY);
+        return stored ? parseInt(stored, 10) : 0;
+    }
+
+    static saveHighscore(score: number): void {
+        localStorage.setItem(Player.HIGHSCORE_KEY, score.toString());
+    }
 
     static initialize() {
         //load model     
@@ -64,6 +76,7 @@ export class Player extends Actor implements DamageableObject {
         this.scene = scene;
         this.camera = camera;
         this.gravity = gravity;
+        this.highscore = Player.getHighscore();
 
         this.rotation.order = 'YXZ';
 
@@ -120,6 +133,11 @@ export class Player extends Actor implements DamageableObject {
     }
 
     reset() {
+        // Save highscore if current score beats it
+        if (this.score > this.highscore) {
+            this.highscore = this.score;
+            Player.saveHighscore(this.highscore);
+        }
         this.health = 3;
         this.score = 0;
     }
