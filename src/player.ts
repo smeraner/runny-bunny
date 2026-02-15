@@ -31,7 +31,7 @@ export class Player extends Actor implements DamageableObject {
     actions: THREE.AnimationAction[] | undefined;
     score: number = 0;
     highscore: number = 0;
-    eggBucketMaterial: THREE.MeshPhongMaterial | undefined;
+    eggBucketMaterial: THREE.MeshToonMaterial | undefined;
     effectMesh: THREE.Mesh | undefined;
 
     static HIGHSCORE_KEY = 'runnyBunny_highscore';
@@ -71,7 +71,7 @@ export class Player extends Actor implements DamageableObject {
      * @param {number} gravity
      */
     constructor(scene: THREE.Scene, camera: THREE.Camera, gravity: number) {
-        super(gravity,scene);
+        super(gravity, scene);
 
         this.scene = scene;
         this.camera = camera;
@@ -82,7 +82,7 @@ export class Player extends Actor implements DamageableObject {
 
         Player.model.then(gltf => {
             this.model = gltf.scene;
-            if(!this.model) throw new Error("Model not loaded");
+            if (!this.model) throw new Error("Model not loaded");
             this.add(this.model);
             this.mixer = new THREE.AnimationMixer(this.model);
             this.runAction = this.mixer.clipAction((gltf as any).animations[0]);
@@ -90,7 +90,7 @@ export class Player extends Actor implements DamageableObject {
 
             //create brown bunny bucket on his back
             const bucketGeometry = new THREE.CylinderGeometry(0.5, 0.3, 1, 16);
-            const bucketMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+            const bucketMaterial = new THREE.MeshToonMaterial({ color: 0x8B4513 });
             const bucketMesh = new THREE.Mesh(bucketGeometry, bucketMaterial);
             bucketMesh.position.set(0, 1, -0.7);
             bucketMesh.rotation.y = Math.PI / 2;
@@ -99,7 +99,7 @@ export class Player extends Actor implements DamageableObject {
 
             //create sphere in brown bunny bucket
             const eggGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-            const eggMaterial = new THREE.MeshPhongMaterial({ color: 0xFF4500 });
+            const eggMaterial = new THREE.MeshToonMaterial({ color: 0xFF4500 });
             const eggMesh = new THREE.Mesh(eggGeometry, eggMaterial);
             eggMesh.position.set(0, 0.5, 0);
             eggMesh.rotation.y = Math.PI / 2;
@@ -112,12 +112,12 @@ export class Player extends Actor implements DamageableObject {
                 const effectMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
                 const effectMesh = new THREE.Mesh(effectGeometry, effectMaterial);
                 effectMesh.position.set(-2, 4, 0);
-                effectMesh.rotation.x = -Math.PI/2;
+                effectMesh.rotation.x = -Math.PI / 2;
                 bucketMesh.add(effectMesh);
                 this.effectMesh = effectMesh;
                 this.effectMesh.visible = false;
             });
-            
+
             this.runAction.play();
         });
 
@@ -149,7 +149,7 @@ export class Player extends Actor implements DamageableObject {
     }
 
     setBucketEggColor(color: THREE.Color) {
-        if(this.eggBucketMaterial) this.eggBucketMaterial.color = color;
+        if (this.eggBucketMaterial) this.eggBucketMaterial.color = color;
     }
 
     /**
@@ -157,21 +157,21 @@ export class Player extends Actor implements DamageableObject {
      * @param {number} amount
      */
     damage(amount: number) {
-        if(this.health === 0) return;
-        
+        if (this.health === 0) return;
+
         this.health -= amount * this.damageMultiplyer;
-        this.dispatchEvent({type: "damaged", health: this.health} as ActorDamageEvent);
+        this.dispatchEvent({ type: "damaged", health: this.health } as ActorDamageEvent);
         if (this.health <= 0) {
             this.health = 0;
-            this.dispatchEvent({type: "dead"} as ActorDeadEvent);
+            this.dispatchEvent({ type: "dead" } as ActorDeadEvent);
             //this.blendDie();
         } else {
             //this.blendHit();
         }
-        if(this.effectMesh) {
+        if (this.effectMesh) {
             this.effectMesh.visible = true;
             setTimeout(() => {
-                if(this.effectMesh) this.effectMesh.visible = false;
+                if (this.effectMesh) this.effectMesh.visible = false;
             }, 1000);
         }
     }
@@ -216,12 +216,12 @@ export class Player extends Actor implements DamageableObject {
         this.position.copy(this.collider.end);
         this.position.y -= this.collider.radius;
 
-        if(this.effectMesh && this.effectMesh.visible) {
-            this.effectMesh.rotation.z += 2*deltaTime;
+        if (this.effectMesh && this.effectMesh.visible) {
+            this.effectMesh.rotation.z += 2 * deltaTime;
         }
 
         this.colliderMesh.visible = Player.debug;
-        if(this.mixer) this.mixer.update(deltaTime);
+        if (this.mixer) this.mixer.update(deltaTime);
     }
 
     teleport(position: THREE.Vector3): void {

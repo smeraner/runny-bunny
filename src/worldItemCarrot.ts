@@ -16,10 +16,10 @@ export class WorldItemCarrot extends THREE.Object3D implements WorldItem {
             return gltf;
         });
     }
-    color= new THREE.Color(0, 0, 0);
+    color = new THREE.Color(0, 0, 0);
     tween: Tween.Tween<any> | undefined;
-    isCollectable= true;
-    isObstacle= false;
+    isCollectable = true;
+    isObstacle = false;
 
     constructor() {
         super();
@@ -28,7 +28,7 @@ export class WorldItemCarrot extends THREE.Object3D implements WorldItem {
             const model = gltf.scene.clone();
             this.add(model);
             this.tween = new Tween.Tween(this.position)
-                .to({y: 0.25}, 500)
+                .to({ y: 0.25 }, 500)
                 .yoyo(true)
                 .repeat(Infinity)
                 .start();
@@ -43,15 +43,15 @@ export class WorldItemCarrot extends THREE.Object3D implements WorldItem {
         //get distance between this and collideWith
         const distance = worldPosition.distanceTo(collideWithGlobalVector);
 
-        return distance < 0.5;    
+        return distance < 0.5;
     }
 
     hit(): void {
-        if(this.tween) this.tween.stop();
+        if (this.tween) this.tween.stop();
     }
 
-    update(deltaTime: number): void {
-        if(this.tween) this.tween.update();
+    update(deltaTime: number, player?: THREE.Object3D): void {
+        if (this.tween) this.tween.update();
     }
 
 }

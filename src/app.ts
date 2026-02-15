@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as Tween from 'three/examples/jsm/libs/tween.module.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-import { createText } from 'three/addons/webxr/Text2D.js';
+
 import { OutlineEffect } from 'three/addons/effects/OutlineEffect.js';
 
 import { Player } from './player';
@@ -17,7 +17,13 @@ export class App {
 
     private player: Player | undefined;
     private renderer: THREE.WebGLRenderer;
-    private instructionText: any;
+    private hudLevel: HTMLElement | null = null;
+    private hudHealth: HTMLElement | null = null;
+    private hudScore: HTMLElement | null = null;
+    private hudHighscore: HTMLElement | null = null;
+    private gameOverScreen: HTMLElement | null = null;
+    private gameOverTitle: HTMLElement | null = null;
+    private gameOverText: HTMLElement | null = null;
     private world: World | undefined;
     private GRAVITY: number = 9.8;
 
@@ -68,6 +74,14 @@ export class App {
         });
 
         this.effect = new OutlineEffect(this.renderer);
+
+        this.hudLevel = document.getElementById('hud-level');
+        this.hudHealth = document.getElementById('hud-health');
+        this.hudScore = document.getElementById('hud-score');
+        this.hudHighscore = document.getElementById('hud-highscore');
+        this.gameOverScreen = document.getElementById('game-over');
+        this.gameOverTitle = this.gameOverScreen?.querySelector('h1') || null;
+        this.gameOverText = this.gameOverScreen?.querySelector('p') || null;
 
         this.init();
     }
@@ -215,6 +229,8 @@ export class App {
         this.player.addEventListener('dead', () => {
             this.vibrate(1000);
             this.updateHud();
+            this.showGameOver("Game Over", "Wait to restart...");
+            this.updateHud();
             if (!this.world || !this.player) return;
             this.player.teleport(this.world.playerSpawnPoint);
             this.world.allLightsOff();
@@ -245,6 +261,7 @@ export class App {
         this.player.teleport(this.world.playerSpawnPoint);
         this.player.reset();
         this.world.reset();
+        this.hideGameOver();
         this.updateHud();
     }
 
@@ -293,9 +310,23 @@ export class App {
     displayWinMessage() {
         if (!this.player || !this.world) return;
         this.blendBlack();
-        this.updateInstructionText("You win! Reload to restart.");
+        this.showGameOver("You Win!", "Reload to restart.");
         this.world.allLightsOff();
         this.world.stopWorldAudio();
+    }
+
+    private showGameOver(title: string, text: string) {
+        if (this.gameOverScreen) {
+            this.gameOverScreen.classList.remove('hidden');
+            if (this.gameOverTitle) this.gameOverTitle.innerText = title;
+            if (this.gameOverText) this.gameOverText.innerText = text;
+        }
+    }
+
+    private hideGameOver() {
+        if (this.gameOverScreen) {
+            this.gameOverScreen.classList.add('hidden');
+        }
     }
 
     private resize(): void {
@@ -361,26 +392,10 @@ export class App {
     private updateHud() {
         if (!this.player) return;
 
-        let hudText = `L ${this.world?.getLevel()} `;
-        if (this.player.health === 0) {
-            hudText = " ☠ Game over. Wait to restart.";
-        } else {
-            hudText += ` ♥ ${this.player.health.toFixed(0)}`;
-        }
-        hudText += ` 🥚 ${this.player.score}`;
-        hudText += ` 🏆 ${this.player.highscore}`;
-
-        this.updateInstructionText(hudText);
-    }
-
-    private updateInstructionText(text: string): void {
-        if (!this.player || !this.camera) return;
-
-        this.camera.remove(this.instructionText);
-        this.instructionText = createText(text, 0.04);
-        this.instructionText.position.set(0, 0.1, -0.2);
-        this.instructionText.scale.set(0.3, 0.3, 0.3);
-        this.camera.add(this.instructionText);
+        if (this.hudLevel) this.hudLevel.innerText = `L ${this.world?.getLevel()}`;
+        if (this.hudHealth) this.hudHealth.innerText = `♥ ${this.player.health.toFixed(0)}`;
+        if (this.hudScore) this.hudScore.innerText = `🥚 ${this.player.score}`;
+        if (this.hudHighscore) this.hudHighscore.innerText = `🏆 ${this.player.highscore}`;
     }
 
     private teleportPlayerIfOob(): void {

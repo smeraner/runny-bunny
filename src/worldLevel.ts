@@ -84,19 +84,19 @@ export class WorldLevel {
         return level;
     }
 
-    putPartofLevelToMap(placeholders2d: THREE.Object3D[][], from:number=0, to:number=17) {
-        if(to-from > placeholders2d.length) throw new Error('Not enough placeholders');
+    putPartofLevelToMap(placeholders2d: THREE.Object3D[][], from: number = 0, to: number = 17) {
+        if (to - from > placeholders2d.length) throw new Error('Not enough placeholders');
         const level = this.getPartOfLevel(from, to);
 
         for (let i = 0; i < level.length; i++) {
             const levelRow = level[i];
             const placeholdersRow = placeholders2d[i];
-            if(!placeholdersRow) break;
+            if (!placeholdersRow) break;
 
             for (let j = 0; j < levelRow.length; j++) {
                 const levelCell = levelRow[j];
                 const placeholder = placeholdersRow[j];
-                if(!placeholder) break;
+                if (!placeholder) break;
 
                 placeholder.children.forEach((child: THREE.Object3D) => {
                     placeholder.remove(child);
@@ -128,8 +128,8 @@ export class WorldLevel {
         }
     }
 
-    update(deltaTime: number) {
-        this.collectables.forEach(c => c.update(deltaTime));
-        this.obstacles.forEach(o => o.update(deltaTime));
+    update(deltaTime: number, player?: THREE.Object3D) {
+        this.collectables.forEach(c => c.update(deltaTime, player));
+        this.obstacles.forEach(o => o.update(deltaTime, player));
     }
 }

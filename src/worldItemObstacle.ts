@@ -6,7 +6,7 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
 
     static eggModel: THREE.LatheGeometry;
     static eggMaterials = [
-        new THREE.MeshPhongMaterial({ color: 0x000000 }),
+        new THREE.MeshToonMaterial({ color: 0x000000 }),
     ];
     static cowModel: Promise<{ scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }>;
     static mushroomModel: Promise<{ scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }>;
@@ -15,10 +15,10 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
     static initialize() {
         //construct egg model
         const points = [];
-        for ( let deg = 0; deg <= 180; deg += 6 ) {
+        for (let deg = 0; deg <= 180; deg += 6) {
             const rad = Math.PI * deg / 180;
-            const point = new THREE.Vector2( ( 0.72 + .08 * Math.cos( rad ) ) * Math.sin( rad ), - Math.cos( rad ) ); // the "egg equation"
-            points.push( point );
+            const point = new THREE.Vector2((0.72 + .08 * Math.cos(rad)) * Math.sin(rad), - Math.cos(rad)); // the "egg equation"
+            points.push(point);
         }
         WorldItemObstacle.eggModel = new THREE.LatheGeometry(points);
 
@@ -37,13 +37,13 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
             //replace materials with phong
             mesh.traverse(child => {
                 const mesh = child as THREE.Mesh;
-                if(mesh.material instanceof THREE.MeshStandardMaterial) {
-                    if(mesh.material.name === "Material.003" || mesh.material.name === "Material.002") {
+                if (mesh.material instanceof THREE.MeshStandardMaterial) {
+                    if (mesh.material.name === "Material.003" || mesh.material.name === "Material.002") {
                         mesh.material = new THREE.MeshToonMaterial({ color: 0xffffff });
                     } else {
                         mesh.material = new THREE.MeshToonMaterial({ color: 0xff0000 });
                     }
-                    
+
                 }
             });
             return gltf;
@@ -58,26 +58,35 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
 
     }
 
-    tween: Tween.Tween<any> | undefined;    
+    tween: Tween.Tween<any> | undefined;
     color: THREE.Color = new THREE.Color(0x000000);
     isCollectable = false;
     isObstacle = true;
 
+    private model: THREE.Object3D | undefined;
+    private isCow = false;
+
     constructor() {
         super();
 
-        if(Math.random() < 0.3) {
+        if (Math.random() < 0.3) {
             const mesh = new THREE.Mesh(WorldItemObstacle.eggModel, WorldItemObstacle.eggMaterials[Math.floor(Math.random() * WorldItemObstacle.eggMaterials.length)]);
             mesh.castShadow = true;
             mesh.scale.set(0.2, 0.2, 0.2);
             this.add(mesh);
-        } else if(Math.random() < 0.5) {
+        } else if (Math.random() < 0.5) {
+            this.isCow = true;
             WorldItemObstacle.cowModel.then((gltf: { scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }) => {
-                const model = gltf.scene.clone();
-                model.rotation.y = Math.PI * Math.random();
-                this.add(model);
+                const mesh = gltf.scene.clone();
+                mesh.rotation.y = -Math.PI / 2; // Adjust facing direction
+
+                const wrapper = new THREE.Object3D();
+                wrapper.add(mesh);
+
+                this.model = wrapper;
+                this.add(wrapper);
             });
-        } else if(Math.random() < 0.7) {
+        } else if (Math.random() < 0.7) {
             WorldItemObstacle.treeModel.then((gltf: { scene: THREE.Object3D<THREE.Object3DEventMap>; animations: any; }) => {
                 const model = gltf.scene.clone();
                 model.rotation.y = Math.PI * Math.random();
@@ -100,16 +109,23 @@ export class WorldItemObstacle extends THREE.Object3D implements WorldItem {
         //get distance between this and collideWith
         const distance = worldPosition.distanceTo(collideWithGlobalVector);
 
-        return distance < 0.5;    
+        return distance < 0.5;
     }
 
     hit(): void {
-        if(this.tween) this.tween.update();
+        if (this.tween) this.tween.update();
         this.removeFromParent();
     }
 
-    update(deltaTime: number): void {
-        if(this.tween) this.tween.update();
+    update(deltaTime: number, player?: THREE.Object3D): void {
+        if (this.tween) this.tween.update();
+        if (this.isCow && this.model && player) {
+            const worldPos = new THREE.Vector3();
+            this.model.getWorldPosition(worldPos);
+            // Cylinder alignment: axis is along X. Normal is in YZ plane.
+            this.model.up.set(0, worldPos.y, worldPos.z).normalize();
+            this.model.lookAt(player.position);
+        }
     }
 
 }

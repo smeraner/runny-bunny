@@ -42,15 +42,15 @@ export class World extends THREE.Object3D<WorldEventMap> {
     static soundBufferCollect: Promise<AudioBuffer>;
     static soundBufferIntro: Promise<AudioBuffer>;
     static model: Promise<THREE.Object3D>;
-    private levelCylinder: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshLambertMaterial, THREE.Object3DEventMap> | undefined;
+    private levelCylinder: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshToonMaterial, THREE.Object3DEventMap> | undefined;
     private placeholders2d: THREE.Object3D[][] | undefined;
     private level: WorldLevel = new WorldLevel();
     static treeModel: Promise<THREE.Object3D>;
-    
+
     private weather: Weather = 'none';
     private weatherParticles: THREE.Points<THREE.BufferGeometry<THREE.NormalBufferAttributes>, THREE.PointsMaterial> | undefined;
     private weatherParticlesGeo: THREE.BufferGeometry<THREE.NormalBufferAttributes> | undefined;
-    private weatherParticlesAreaSize= [50,50,50];
+    private weatherParticlesAreaSize = [50, 50, 50];
     private weatherParticlesSpeed = 10;
 
     static initialize() {
@@ -146,9 +146,9 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
         const weather = Math.random();
         let isSnow = false;
-        if(weather < 0.2) {
+        if (weather < 0.2) {
             this.weather = 'rain';
-        } else if(weather < 0.4) {
+        } else if (weather < 0.4) {
             this.weather = 'snow';
             isSnow = true;
         } else {
@@ -166,12 +166,12 @@ export class World extends THREE.Object3D<WorldEventMap> {
         for (let i = 0; i < dataNoiseTexture.image.data.length; i += 4) {
             //random number between 200 and 255
             const x = Math.floor(Math.random() * 55) + 200;
-            dataNoiseTexture.image.data[i + 0] = isSnow? x:0;
+            dataNoiseTexture.image.data[i + 0] = isSnow ? x : 0;
             dataNoiseTexture.image.data[i + 1] = x;
-            dataNoiseTexture.image.data[i + 2] = isSnow? x:0;
+            dataNoiseTexture.image.data[i + 2] = isSnow ? x : 0;
             dataNoiseTexture.image.data[i + 3] = x;
         }
-        const levelMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, map: dataNoiseTexture });
+        const levelMaterial = new THREE.MeshToonMaterial({ color: 0xffffff, map: dataNoiseTexture });
 
         const levelGeometry = new THREE.CylinderGeometry(3, 3, 4, 32);
         levelGeometry.rotateZ(Math.PI / 2);
@@ -182,13 +182,13 @@ export class World extends THREE.Object3D<WorldEventMap> {
         levelLeftGeometry.rotateZ(Math.PI / 2);
         levelLeftGeometry.translate(2.5, 0, 0);
         const levelLeftCylinder = new THREE.Mesh(levelLeftGeometry, levelMaterial);
-        this.levelCylinder.add(levelLeftCylinder);
+        if (this.levelCylinder) this.levelCylinder.add(levelLeftCylinder);
 
         const levelRightGeometry = new THREE.CylinderGeometry(3.5, 3, 1, 32);
         levelRightGeometry.rotateZ(Math.PI / 2);
         levelRightGeometry.translate(-2.5, 0, 0);
         const levelRightCylinder = new THREE.Mesh(levelRightGeometry, levelMaterial);
-        this.levelCylinder.add(levelRightCylinder);
+        if (this.levelCylinder) this.levelCylinder.add(levelRightCylinder);
 
         const tree = await World.treeModel;
         tree.scale.multiplyScalar(0.5);
@@ -238,7 +238,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
             vertice.fromBufferAttribute(positionAttribute, i);
             const placeholder = new THREE.Object3D();
             placeholder.position.copy(vertice);
-            this.levelCylinder.add(placeholder);
+            if (this.levelCylinder) this.levelCylinder.add(placeholder);
             placeholders1d.push(placeholder);
         }
 
@@ -266,7 +266,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
         this.addHemisphere();
 
-        //this.addFog();
+        this.addFog();
 
         const helper = new OctreeHelper(this.worldOctree);
         helper.visible = false;
@@ -311,7 +311,10 @@ export class World extends THREE.Object3D<WorldEventMap> {
     addFog() {
         if (!this.scene) return;
 
-        this.scene.fog = new THREE.Fog(0xffffff, 10, 35);
+        if (!this.scene.background) return;
+        // Fog color should match the sky/background. We can pick a color from the middle of the day or just white/light blue.
+        // Since background is a texture, we pick a solid color that blends well.
+        this.scene.fog = new THREE.Fog(0xb8fbff, 10, 30); // Color from noon gradient
     }
 
     async addHemisphere(time?: number) {
@@ -368,9 +371,14 @@ export class World extends THREE.Object3D<WorldEventMap> {
         hemisphereLight.intensity = 1;
         hemisphere.add(hemisphereLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff)//toGradient);
-        directionalLight.position.set(0, 20, -10);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2); // Increased intensity
+        directionalLight.position.set(5, 20, -10); // Slight offset to improve shadow definition
         directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 1024; // Better shadow quality
+        directionalLight.shadow.mapSize.height = 1024;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 50;
+        directionalLight.shadow.bias = -0.001; // Reduce shadow acne
         hemisphere.add(directionalLight);
 
         this.scene.add(hemisphere);
@@ -381,15 +389,15 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
         const weatherParticlesAreaSize = this.weatherParticlesAreaSize;
 
-        let particleCount=0;
-        let particleColor,particleSize;
+        let particleCount = 0;
+        let particleColor, particleSize;
 
-        if(this.weather === 'rain') {
+        if (this.weather === 'rain') {
             particleCount = 2500;
             particleColor = 0x0000aa;
             particleSize = 0.2;
             this.weatherParticlesSpeed = 10;
-        } else if(this.weather === 'snow') {
+        } else if (this.weather === 'snow') {
             particleCount = 2500;
             particleColor = 0xffffff;
             particleSize = 0.3;
@@ -433,8 +441,8 @@ export class World extends THREE.Object3D<WorldEventMap> {
             });
 
             this.weatherParticles.position.y -= deltaTime * this.weatherParticlesSpeed;
-            if (this.weatherParticles.position.y < -this.weatherParticlesAreaSize[1]/3) {
-                this.weatherParticles.position.y = this.weatherParticlesAreaSize[1]/2;
+            if (this.weatherParticles.position.y < -this.weatherParticlesAreaSize[1] / 3) {
+                this.weatherParticles.position.y = this.weatherParticlesAreaSize[1] / 2;
             }
         }
     }
@@ -444,7 +452,7 @@ export class World extends THREE.Object3D<WorldEventMap> {
 
         //roate level cylinder
         this.levelCylinder.rotation.x -= deltaTime * 0.3 * this.level.speed;
-        this.level.update(deltaTime);
+        this.level.update(deltaTime, player);
 
         // this.animatedObjects.forEach(object => {
         // });
